@@ -1,0 +1,5 @@
+requests>=2.31
+PyYAML>=6.0
+pydantic>=2.6
+# Only needed with llm.backend: api (pay-per-token). The default backend uses the `claude` command instead.
+anthropic>=0.109

@@ -1,0 +1,3 @@
+# Optional: save drafts straight into Gmail Drafts (email.gmail_drafts: true). See lavoro/gmail.py.
+google-api-python-client>=2.100
+google-auth-oauthlib>=1.2

@@ -1,0 +1,15 @@
+# Your personal files and data never leave your computer
+config.yaml
+profile.md
+data/
+output/
+credentials.json
+token.json
+.env
+
+__pycache__/
+*.pyc
+
+# Machine-specific Claude Code permissions
+.claude/settings.local.json
+.venv/

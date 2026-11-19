@@ -1,0 +1,10 @@
+Soria typeface
+Designed by Bydani (Dani). Copyright (c) 2016 by Bydani.
+Source: https://www.fontsquirrel.com/fonts/soria
+
+The font file (soria.ttf) is included unmodified, exactly as downloaded.
+
+The font's own metadata licenses it under Creative Commons Attribution-NoDerivatives 4.0:
+https://creativecommons.org/licenses/by-nd/4.0/
+The download also ships the SIL Open Font License 1.1, included here as soria-OFL.txt.
+Lavoro follows the stricter of the two: it credits the designer and does not modify the font.
