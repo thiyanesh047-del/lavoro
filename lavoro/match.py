@@ -121,6 +121,14 @@ def _location_from_ad(con, r):
     return {**dict(r), "location": f"{where} (from the ad)", "description": desc}
 
 
+def reopen_skipped(con) -> int:
+    """Send jobs the filter skipped back through it, e.g. after titles or locations changed in config.yaml.
+    Jobs the user turned down ("Not for me") were scored first, so they stay skipped. Returns how many."""
+    cur = con.execute("UPDATE jobs SET status='new', passed_filter=0 WHERE status='skipped' AND score IS NULL")
+    con.commit()
+    return cur.rowcount
+
+
 def apply_filter(con, cfg) -> int:
     mark_duplicates(con)
     s = cfg.get("search", {})
@@ -230,17 +238,37 @@ def _heuristic(profile: str, desc: str) -> int:
 
 
 def score_jobs(con, cfg) -> int:
-    lc = cfg.get("llm", {})
+    """Score new jobs that passed the filter, newest first, up to llm.max_jobs_to_score_per_run."""
     rows = con.execute(
         "SELECT * FROM jobs WHERE passed_filter=1 AND score IS NULL AND status='new' ORDER BY first_seen DESC LIMIT ?",
-        (lc.get("max_jobs_to_score_per_run", 40),),
+        (cfg.get("llm", {}).get("max_jobs_to_score_per_run", 40),),
     ).fetchall()
+    return _score_rows(con, cfg, rows, set_status=True)
+
+
+def rescore_jobs(con, cfg, keys: list[str] | None = None, limit: int | None = None) -> int:
+    """Score jobs again, for example after profile.md changed. With `keys`, exactly those jobs; otherwise the open
+    jobs that were already scored, best first. A job keeps its stage (an email ready stays ready); only its score
+    and fit lists change. A job that now scores high enough gets a contact and a draft on the next run."""
+    if keys:
+        rows = con.execute(f"SELECT * FROM jobs WHERE key IN ({','.join('?' * len(keys))})", keys).fetchall()
+    else:
+        rows = con.execute(
+            "SELECT * FROM jobs WHERE passed_filter=1 AND score IS NOT NULL AND status IN ('scored','looked_up','no_contact','drafted') "
+            "ORDER BY score DESC, first_seen DESC LIMIT ?",
+            (limit or cfg.get("llm", {}).get("max_jobs_to_score_per_run", 40),)).fetchall()
+    return _score_rows(con, cfg, rows, set_status=False)
+
+
+def _score_rows(con, cfg, rows, set_status: bool) -> int:
+    lc = cfg.get("llm", {})
     profile = read_profile(cfg)
     if not rows:
         return 0
+    stage = ", status='scored'" if set_status else ""
     if not has_claude():
         for r in rows:
-            con.execute("UPDATE jobs SET score=?, score_reason=?, status='scored' WHERE key=?",
+            con.execute(f"UPDATE jobs SET score=?, score_reason=?{stage} WHERE key=?",
                         (_heuristic(profile, r["description"]), "rough keyword score (Claude was not available)", r["key"]))
         con.commit()
         return len(rows)
@@ -267,11 +295,11 @@ def score_jobs(con, cfg) -> int:
             if s == "error" or (s is None and llm._stop.is_set()):
                 continue  # retried on the next run
             if s is None:
-                con.execute("UPDATE jobs SET score=0, score_reason='model declined', status='scored' WHERE key=?", (key,))
+                con.execute(f"UPDATE jobs SET score=0, score_reason='model declined'{stage} WHERE key=?", (key,))
             else:
                 reason = s.reason + "".join(f" {label}: {'; '.join(items)}." for label, items in
                                             (("Fits", s.fits), ("Missing", s.missing), ("Red flags", s.red_flags)) if items)
-                con.execute("UPDATE jobs SET score=?, score_reason=?, fit_detail=?, hiring_team=?, language=?, status='scored' "
+                con.execute(f"UPDATE jobs SET score=?, score_reason=?, fit_detail=?, hiring_team=?, language=?{stage} "
                             "WHERE key=?", (max(0, min(10, s.score)), reason, _detail_json(s), s.hiring_team, s.language, key))
             n += 1
     con.commit()

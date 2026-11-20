@@ -144,6 +144,35 @@ def cmd_match(con, cfg, a):
         print(f"Split the fit note into what fits and what is missing for {explained} jobs scored earlier.")
 
 
+def cmd_refilter(con, cfg, a):
+    """After changing titles, locations or seniority in config.yaml: check the jobs the old filter skipped again."""
+    n = match.reopen_skipped(con)
+    print(f"{n:,} skipped jobs go back through the filter. Next: python -m lavoro match")
+
+
+def cmd_rescore(con, cfg, a):
+    """Score jobs again, e.g. after profile.md changed. Each one is a Claude call on your plan."""
+    n = match.rescore_jobs(con, cfg, a.keys or None, a.limit)
+    print(f"Scored {n} jobs again. Ones that now reach your min_score get a contact and a draft on the next run.")
+
+
+def cmd_redraft(con, cfg, a):
+    """Rewrite the email draft for one job, optionally following a note such as "shorter" or "mention my thesis"."""
+    j = con.execute("SELECT key, title, company, status FROM jobs WHERE key=?", (a.key,)).fetchone()
+    if not j:
+        print(f"No job with key {a.key}. Find keys with: python -m lavoro list")
+        return
+    if j["status"] == "sent":
+        print(f"You already sent the email for {j['title']} at {j['company']}, so Lavoro leaves it as it is.")
+        return
+    n = draft.write_drafts(con, cfg, None, keys=[a.key], note=a.note or "")
+    if n:
+        d = con.execute("SELECT subject, body FROM drafts WHERE job_key=? ORDER BY created_at DESC LIMIT 1", (a.key,)).fetchone()
+        print(f"New draft for {j['title']} at {j['company']}:\n\nSubject: {d['subject']}\n\n{d['body']}")
+    else:
+        print(f"No contact with an email for {j['title']} at {j['company']}, so there is nothing to draft.")
+
+
 def cmd_ai_check(con, cfg, a):
     """One tiny call to confirm Claude works with the current settings."""
     print(f"AI: {llm.describe()}")
@@ -307,8 +336,14 @@ def main(argv=None):
     p = sub.add_parser("describe", help="add a one-line description to hiring companies that have none")
     p.add_argument("--limit", type=int, default=400)
     sub.add_parser("match", help="filter and score new jobs")
+    sub.add_parser("refilter", help="after changing titles or locations in config.yaml, check the jobs the old filter skipped again")
+    p = sub.add_parser("rescore", help="score jobs again, e.g. after you changed profile.md (best-scored open jobs first)")
+    p.add_argument("keys", nargs="*", help="job keys from `list`; empty = the best-scored open jobs")
+    p.add_argument("--limit", type=int, help="how many (default: llm.max_jobs_to_score_per_run)")
     sub.add_parser("contacts", help="find the hiring person for top jobs")
     sub.add_parser("draft", help="write emails for top jobs")
+    p = sub.add_parser("redraft", help="rewrite one job's email draft, e.g. --note \"shorter, mention my thesis\"")
+    p.add_argument("key", help="the job key, from `list`"); p.add_argument("--note", help="what to change")
     p = sub.add_parser("digest", help="build the HTML digest"); p.add_argument("--open", action="store_true")
     p = sub.add_parser("run", help="fetch → match → contacts → draft → digest")
     p.add_argument("--discover", action="store_true", help="also re-seed YC and the bundled startup list and detect boards first")

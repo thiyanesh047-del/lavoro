@@ -429,9 +429,23 @@ def make_handler(port: int):
     return Handler
 
 
+class _Server(ThreadingHTTPServer):
+    # On Windows, address reuse lets a second copy bind the same port without an error, and the two then share the
+    # requests. Refuse instead, so "already running" is said out loud.
+    allow_reuse_address = os.name != "nt"
+
+
 def serve(cfg, port: int = 8765, open_browser: bool = False):
-    httpd = ThreadingHTTPServer(("127.0.0.1", port), make_handler(port))
     url = f"http://127.0.0.1:{port}/"
+    try:
+        httpd = _Server(("127.0.0.1", port), make_handler(port))
+    except OSError:
+        print(f"Port {port} is already in use. Lavoro's site is probably running already: open {url}\n"
+              f"To run a second copy, pick another port: python -m lavoro serve --port {port + 1}")
+        if open_browser:
+            import webbrowser
+            webbrowser.open(url)
+        return
     print(f"Lavoro is running at {url}  (only on this computer; Ctrl+C to stop)")
     if open_browser:
         import webbrowser

@@ -11,12 +11,12 @@ You read the drafts on a local page, at http://127.0.0.1:8765, and send the ones
 
 The AI steps run through Claude Code on your existing Claude plan. You don't need an API key and you don't pay per token.
 
-![The welcome screen: drop your CV to start](docs/welcome.png)
+![The welcome screen: drop your CV to start](docs/welcome.webp)
 
 | | |
 |---|---|
-| ![All jobs, filtered to design](docs/jobs.png) | ![What product designer roles pay and ask for](docs/role.png) |
-| ![Every company Lavoro watches](docs/companies.png) | |
+| ![All jobs, filtered to design](docs/jobs.webp) | ![What product designer roles pay and ask for](docs/role.webp) |
+| ![Every company Lavoro watches](docs/companies.webp) | |
 
 ## Quick start: let Claude set it up
 
@@ -24,7 +24,7 @@ The AI steps run through Claude Code on your existing Claude plan. You don't nee
 2. Clone this repository:
 
    ```bash
-   git clone https://github.com/<you>/lavoro.git
+   git clone https://github.com/thiyanesh047-del/lavoro.git
    ```
 
 3. Open Claude Code in the `lavoro` folder.
@@ -49,9 +49,11 @@ Claude installs what's needed and asks for your CV or LinkedIn text. It then ask
 3. On the welcome screen, drop your CV (PDF, Word or text) or paste your portfolio link. Lavoro reads it with Claude and writes your `profile.md`, using only facts from your CV or site.
 4. Check the roles and cities it suggests, then press **Find my first jobs**.
 
-The first search builds the company list too, so it takes 5 to 10 minutes.
+The first search builds the company list too. Reading about 6,900 job boards takes about 7 minutes on its own, and the first search also finds job boards and scores roles, so expect 15 minutes or more.
 
 LinkedIn profiles can't be read by other tools, so use LinkedIn's **More → Save to PDF** and drop that file.
+
+Something not working? See [docs/troubleshooting.md](docs/troubleshooting.md).
 
 ## Manual setup
 
@@ -108,9 +110,9 @@ These steps go in order.
 | Fetch | `fetch` | Reads every open role from each board's public feed. No key needed. It also reads the latest Hacker News "Who is hiring?" thread (posts often include the founder's email), [Arbeitnow](https://www.arbeitnow.com)'s free European job API, and, in Sweden, Platsbanken through the JobTech API. |
 | Web search | `web` | Claude searches the web for postings the boards miss: company career pages, local job sites and LinkedIn job listings. It reads search results only and never opens a LinkedIn page. Old LinkedIn ads, which search engines keep listing, are dropped. One Claude call per run. |
 | Just raised | `funding` | Once a week, Claude finds companies in your region that announced a funding round in the last weeks. They tend to hire next. Lavoro looks for their job boards. |
-| Match | `match` | Applies a quick title, location and company filter, then Claude scores what's left from 0 to 10. |
+| Match | `match`, `rescore` | Applies a quick title, location and company filter, then Claude scores what's left from 0 to 10 and lists what fits, what is missing and what rules the role out. After you change `profile.md`, `rescore` scores the best open roles again. |
 | Contacts | `contacts` | Finds the hiring person for top roles. See "Where emails come from" below. |
-| Draft | `draft` | Writes one short email per role. |
+| Draft | `draft`, `redraft` | Writes one short email per role. `redraft <key> --note "shorter"` rewrites one draft the way you ask. |
 | Site | `serve` | Shows the local site. Its buttons save to your local database. |
 
 The site has five pages:
@@ -190,10 +192,10 @@ Changing the region sends jobs the old region skipped back through the filter on
 
 - **Windows:** Task Scheduler → Create Basic Task → Daily → Start a program → `run_daily.bat`. Run the task as your own user, so the `claude` login is available. Turn on "Run task as soon as possible after a scheduled start is missed". The log goes to `output/run.log`. Extra arguments are passed on, e.g. `run_daily.bat --region europe`.
 - **Once a week** the daily run also refreshes the YC company list, adds any new companies from the bundled startup list, and finds new job boards (`search.yc.refresh_days`).
-- **macOS/Linux:** add a cron line:
+- **macOS/Linux:** make the script runnable once (`chmod +x run_daily.sh`), then add a cron line with `crontab -e`. The log goes to `output/run.log`; extra arguments are passed on.
 
   ```
-  30 7 * * * cd /path/to/lavoro && python -m lavoro run
+  30 7 * * * /path/to/lavoro/run_daily.sh
   ```
 
 - **In Claude Code:** type `/morning-run`.

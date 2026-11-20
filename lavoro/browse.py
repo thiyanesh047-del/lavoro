@@ -451,7 +451,7 @@ def render_companies(con, params: dict) -> str:
             e((info.get("locations") or "").split(";")[0][:40]),
         ] if x)
         roles = r["roles"]
-        roles_txt = (f"{roles} open role{'s' if roles != 1 else ''}") if roles else "No open roles"
+        roles_txt = (f"{roles:,} open role{'s' if roles != 1 else ''}") if roles else "No open roles"
         if info.get("one_liner"):
             line = f'<p class="co-line">{e(info["one_liner"])}</p>'
         else:  # no description found anywhere: say where they hire instead of leaving the card empty

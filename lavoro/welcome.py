@@ -76,7 +76,7 @@ body.welcome:has(#p-start.on) .scene{display:none}  /* the valley lives inside t
 .ex1{left:28px;right:90px;top:54px}
 .ex1 .row{display:flex;justify-content:space-between;gap:12px}
 .ex1 .t{font-weight:600;font-size:15px}.ex1 .m{color:var(--mute);font-size:13px}
-.ex1 .fit{font:400 30px/1 var(--serif);text-align:right}.ex1 .fit small{display:block;margin-top:4px;font:500 11px var(--sans);color:var(--mute)}
+.ex1 .fit{font:400 30px/1 var(--serif);text-align:right}.ex1 .fit small{display:block;margin-top:4px;font:600 11px var(--sans);color:var(--mint-ink);white-space:nowrap}
 .ex1 .tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
 .ex1 .tags span{height:24px;padding:0 9px;border-radius:999px;font:600 11.5px/24px var(--sans);background:var(--inset);color:var(--ink-2)}
 .ex1 .tags .new{background:var(--mint-wash);color:var(--mint-ink)}
@@ -368,7 +368,7 @@ function render(s){
     s.jobs_count?`Each scored ${s.min_score} or more out of 10 by Claude`:'Claude reads each ad and scores it 0 to 10');
   setBody('jobs',J.length?cards('jobs',J.map(j=>`<a class="jc" href="${esc(j.url)}" target="_blank" rel="noopener" style="--tint:${tint(j.company)}">
     <div class="top"><span class="av">${esc((j.company||'?')[0].toUpperCase())}</span>${j.posted_at||j.first_seen?`<span class="age">${ago(j.posted_at||j.first_seen)}</span>`:''}</div>
-    <div class="in"><span class="co">${esc(j.company)}</span><span class="ti">${esc(j.title)}</span><span class="sc">${Math.round(j.score)}/10 fit</span>
+    <div class="in"><span class="co">${esc(j.company)}</span><span class="ti">${esc(j.title)}</span><span class="sc">${Math.round(j.score)}/10 · ${j.score>=9?'Top fit':j.score>=7?'Strong fit':j.score>=5?'Partial fit':j.score>=3?'Weak fit':'Poor fit'}</span>
     <span class="lo">${esc(j.location||'')}</span></div></a>`).join(''),'Swipe through your matches'):
     (stepDone('jobs')?`<p class="empty-s">Nothing scored ${s.min_score}+ yet. Lavoro checks again every morning.</p>`:''));
   // 6. people
@@ -451,7 +451,7 @@ def render(cfg) -> str:
   style="background-image:url('{asset("valley-tall.webp")}')">
   <span class="tagx">Example</span>
   <div class="ex ex1"><div class="row"><div><div class="t">Senior Product Designer</div><div class="m">Example Studio, Stockholm, hybrid</div></div>
-    <div class="fit">8<small>fit</small></div></div>
+    <div class="fit">8<small>of 10 · Strong fit</small></div></div>
     <div class="tags"><span class="new">Posted today</span><span>Design systems</span><span>Figma</span></div></div>
   <div class="ex ex2"><span class="av">{ic("user")}</span><div><b>Head of Design</b><small>Leads the team. Email found on the company site.</small></div><span class="ok">Verified</span></div>
   <div class="ex ex3"><div class="h">{icon("mail")}Draft, not sent</div><div class="s">Your design systems role</div>

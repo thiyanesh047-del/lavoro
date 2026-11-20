@@ -102,8 +102,9 @@ def _template(cfg, job, contact) -> Email:
     return Email(subject=f"{job['title']} at {job['company']}", body=body + "\n\n" + signature(cfg))
 
 
-def write_drafts(con, cfg, gmail_service=None, keys: list[str] | None = None) -> int:
-    """Draft an email for each looked-up top job, or, with `keys`, for exactly those jobs."""
+def write_drafts(con, cfg, gmail_service=None, keys: list[str] | None = None, note: str = "") -> int:
+    """Draft an email for each looked-up top job, or, with `keys`, for exactly those jobs. With `note` (e.g. "make it
+    shorter"), the current draft is rewritten to follow it."""
     lc, ec, me = cfg.get("llm", {}), cfg.get("email", {}), cfg.get("me", {})
     if keys:
         jobs = con.execute(f"SELECT * FROM jobs WHERE key IN ({','.join('?' * len(keys))})", keys).fetchall()
@@ -121,6 +122,9 @@ def write_drafts(con, cfg, gmail_service=None, keys: list[str] | None = None) ->
             continue
         todo.append((j, c))
     con.commit()
+    # With a note, the drafts being rewritten (read here: the connection belongs to this thread).
+    current = {j["key"]: con.execute("SELECT subject, body FROM drafts WHERE job_key=? AND contact_id=?", (j["key"], c["id"])).fetchone()
+               for j, c in todo} if note else {}
 
     def work(item):
         j, c = item
@@ -139,6 +143,11 @@ def write_drafts(con, cfg, gmail_service=None, keys: list[str] | None = None) ->
         user = (f"RECIPIENT: {who} <{c['email']}> — {c['title'] or ''}\n"
                 f"ROLE: {j['title']} at {j['company']} ({j['location']})\nWHY IT FITS (screening note): {j['score_reason'] or '-'}\n\n"
                 f"JOB AD:\n{j['description']}")
+        if note:
+            old = current.get(j["key"])
+            if old:
+                user += f"\n\nCURRENT DRAFT (subject: {old['subject']}):\n{_strip_signoff(old['body'], cfg)}"
+            user += f"\n\nREWRITE IT. THE CANDIDATE ASKS: {note}\nKeep every rule above; still use only facts from the profile."
         try:
             e = llm.parse(effort=lc.get("draft_effort", "medium"), system=system, user=user, schema=Email, max_tokens=8000)
         except Exception as ex:

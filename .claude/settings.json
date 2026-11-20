@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python --version)",
+      "Bash(pip install -r requirements.txt)",
+      "Bash(python -m lavoro --help)",
+      "Bash(python -m lavoro ai-check)",
+      "Bash(python -m lavoro stats)",
+      "Bash(python -m lavoro list:*)",
+      "Bash(python -m lavoro region:*)",
+      "Bash(python -m lavoro seed-yc)",
+      "Bash(python -m lavoro seed-startups)",
+      "Bash(python -m lavoro detect:*)",
+      "Bash(python -m lavoro probe:*)",
+      "Bash(python -m lavoro add:*)",
+      "Bash(python -m lavoro fetch)",
+      "Bash(python -m lavoro web)",
+      "Bash(python -m lavoro funding:*)",
+      "Bash(python -m lavoro describe:*)",
+      "Bash(python -m lavoro match)",
+      "Bash(python -m lavoro refilter)",
+      "Bash(python -m lavoro rescore:*)",
+      "Bash(python -m lavoro contacts)",
+      "Bash(python -m lavoro draft)",
+      "Bash(python -m lavoro redraft:*)",
+      "Bash(python -m lavoro digest:*)",
+      "Bash(python -m lavoro run:*)",
+      "Bash(python -m lavoro serve:*)",
+      "Bash(python -m lavoro logos:*)",
+      "Bash(python -m lavoro export:*)",
+      "Bash(python -m lavoro notify:*)",
+      "Read(./profile.md)",
+      "Read(./config.yaml)"
+    ]
+  }
+}

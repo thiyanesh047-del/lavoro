@@ -119,15 +119,19 @@ python -m lavoro probe "<name>"
 Offer one of these:
 
 - **Windows:** Task Scheduler runs `run_daily.bat` daily.
-- **macOS/Linux:** add a cron line:
+- **macOS/Linux:** run `chmod +x run_daily.sh`, then add this line with `crontab -e`:
 
   ```
-  30 7 * * * cd <folder> && python -m lavoro run
+  30 7 * * * <folder>/run_daily.sh
   ```
 
 - **In Claude:** the user types `/morning-run`.
 
 Only set up a schedule if the user says yes.
+
+## When something goes wrong
+
+Read `docs/troubleshooting.md` and follow it. To fix bad or missing matches, follow the `tune-search` skill.
 
 ## Rules
 

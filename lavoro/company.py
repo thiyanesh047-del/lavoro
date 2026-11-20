@@ -286,7 +286,7 @@ def _who(con, team) -> dict:
 
 def _who_lines(w: dict, k: str, n: int, with_team: bool) -> str:
     """Name (or the usual hiring role), title, team and how much to trust the address. The page script repaints these."""
-    team = (f'<span class="wteam">{e(TEAM_LABEL[k])} · {n} open role{"s" if n != 1 else ""}</span>' if with_team else "")
+    team = (f'<span class="wteam">{e(TEAM_LABEL[k])} · {n:,} open role{"s" if n != 1 else ""}</span>' if with_team else "")
     if w["found"]:
         cls = "ok" if w["status"] in OK_TRUST else "warn" if w["status"] == "guessed" else ""
         return (f'<small class="eyebrow">Hires for this team</small><b class="wname">{e(w["name"])}</b>'
@@ -572,7 +572,7 @@ def _teams(company, order, teams, who, has_pay) -> str:
         w = who[k]
         where = _place_text(_places(rows))
         newest = ago(rows[0]["posted_at"] or rows[0]["first_seen"])
-        sub_line = f'{cnt} open role{"s" if cnt != 1 else ""}' + (f' in {where}' if where else '') + f', newest {newest}.'
+        sub_line = f'{cnt:,} open role{"s" if cnt != 1 else ""}' + (f' in {where}' if where else '') + f', newest {newest}.'
         if w["found"]:
             who_line = f' Lavoro found {w["name"]}{", " + w["title"] if w["title"] else ""}, for {w["job"]}.'
             label = "Email" if w["subject"] else "Write email"

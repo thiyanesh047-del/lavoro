@@ -16,6 +16,16 @@ Everything shows on a local site at http://127.0.0.1:8765.
 | "set up Lavoro", "install this", "get started", or `profile.md` / `config.yaml` is missing | Follow the `lavoro-setup` skill. |
 | "run it", "find jobs", "morning run" | Follow the `morning-run` skill. |
 | "open the site", "show me" | Run `python -m lavoro serve --open` in the background, then give the URL. |
+| "add Spotify", "watch this company" | `python -m lavoro add <website, careers link or name>`. A careers link is the surest; Workday and SuccessFactors boards need one. |
+| "search all of Europe", "only Sweden" | `python -m lavoro region <sweden\|nordics\|europe\|asia\|worldwide\|custom>`. The next run re-checks jobs the old region skipped. |
+| "wrong jobs", "too few matches", "too many", "tune my search" | Follow the `tune-search` skill. |
+| "why did this job score 4?" | Find its key with `python -m lavoro list --limit 50`. The site's email card lists what fits, what is missing and what rules it out; the same is in `jobs.fit_detail` and `jobs.score_reason`. Explain from those. |
+| "I updated my profile", "score them again" | `python -m lavoro rescore` (the best-scored open jobs) or `python -m lavoro rescore <key> <key>`. Each job is one Claude call on the user's plan. |
+| "make this email shorter", "mention my thesis" | `python -m lavoro redraft <key> --note "<what to change>"`, then show the new draft. It never touches a job marked sent. |
+| "I sent it" | Only when the user says they sent it: `python -m lavoro mark <key> sent`, or **Mark as sent** on the site. The role moves to Emailed on the Tracker with a follow-up a week later. |
+| "who should I follow up with?" | The Tracker page (`/tracker`) and Today list follow-ups that are due; **Write follow-up** drafts one. |
+| "export these roles to Word" | `python -m lavoro export <words>`, e.g. `python -m lavoro export volvo graduate`. |
+| an error, a stuck run, "it's slow" | Read `docs/troubleshooting.md` and follow it. |
 
 ## How it works
 
