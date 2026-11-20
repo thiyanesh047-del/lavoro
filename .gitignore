@@ -13,3 +13,6 @@ __pycache__/
 # Machine-specific Claude Code permissions
 .claude/settings.local.json
 .venv/
+
+# promo videos built with HyperFrames (large renders)
+videos/

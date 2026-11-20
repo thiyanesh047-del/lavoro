@@ -221,6 +221,13 @@ def cmd_list(con, cfg, a):
         print(f"{r['score']:>4}  {r['status']:<10} {r['title']} — {r['company']} ({r['location']})\n      {r['key']}")
 
 
+def cmd_export(con, cfg, a):
+    """Save the full description of matching roles to a Word file."""
+    from . import export
+    path, n = export.save(con, a.words, a.out, a.closed)
+    print(f"Saved {n} roles to {path.resolve()}" if path else "No saved roles match those words.")
+
+
 def cmd_mark(con, cfg, a):
     cur = con.execute("UPDATE jobs SET status=? WHERE key=?", (a.status, a.key))
     con.commit()
@@ -284,6 +291,10 @@ def main(argv=None):
     p.add_argument("--no-refresh", action="store_true", help="skip the weekly company-list refresh")
     p.add_argument("--limit", type=int, default=200); p.add_argument("--open", action="store_true")
     p = sub.add_parser("list", help="list scored jobs"); p.add_argument("--min-score", type=float, default=0); p.add_argument("--limit", type=int, default=30)
+    p = sub.add_parser("export", help="save the full description of matching roles to a Word file")
+    p.add_argument("words", nargs="+", help="every word must appear in the company or title, e.g. volvo graduate program")
+    p.add_argument("--out", help="file path (default: output/<words>-<date>.docx)")
+    p.add_argument("--closed", action="store_true", help="also include roles whose ad has closed")
     p = sub.add_parser("mark", help="set a job's status"); p.add_argument("key"); p.add_argument("status", choices=["sent", "skipped", "drafted", "scored"])
     sub.add_parser("stats", help="counts")
     p = sub.add_parser("notify", help="show the desktop notification now"); p.add_argument("--test", action="store_true")
