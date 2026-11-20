@@ -66,7 +66,11 @@ code{font:500 13px/1 ui-monospace,"Cascadia Code",Consolas,monospace;background:
 
 /* ---------- top bar ---------- */
 .bar{position:sticky;top:0;z-index:5;transition:background .4s,border-color .4s,backdrop-filter .4s;border-bottom:1px solid transparent}
-.bar.scrolled{background:rgba(251,250,248,.82);backdrop-filter:saturate(1.4) blur(12px);border-bottom-color:var(--line)}
+.bar.scrolled{background:rgba(251,250,248,.86);-webkit-backdrop-filter:saturate(1.4) blur(14px);backdrop-filter:saturate(1.4) blur(14px)}
+/* a soft fade under the bar, so the page melts away as it slides beneath instead of hitting a hard edge */
+.bar::after{content:"";position:absolute;left:0;right:0;top:100%;height:22px;pointer-events:none;opacity:0;transition:opacity .4s;
+  background:linear-gradient(rgba(251,250,248,.86),rgba(251,250,248,0))}
+.bar.scrolled::after{opacity:1}
 .bar .wrap{display:flex;align-items:center;justify-content:space-between;height:64px;gap:12px}
 .brand{display:flex;align-items:center;gap:10px;white-space:nowrap;font:400 25px/1 var(--serif);letter-spacing:-.01em;text-decoration:none}
 .mark{width:30px;height:30px;border-radius:9px;background:var(--rose);color:#fff;display:grid;place-items:center;

@@ -178,6 +178,7 @@ table.byteam td:not(:first-child),table.byteam th:not(:first-child){text-align:r
 """
 
 REACH_JS = r"""
+(()=>{
 const post=(u,b)=>fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});
 const OK_TRUST=['listed_in_ad','published','verified'];
 const initials=s=>(s||'').split(/[\s,]+/).filter(w=>w&&!/^(of|the|and|&|for)$/i.test(w)).slice(0,2).map(w=>w[0].toUpperCase()).join('')||'?';
@@ -198,7 +199,7 @@ function letter(d){
     ev.target.textContent='Sent, on your tracker';ev.target.disabled=true;say('Marked as sent. It is on your tracker with a follow-up date.')}catch(e){say('Could not save. Is Lavoro still running?')}};
   return wrap}
 // Repaint the team's person, in its section and in the top card.
-function paint(k,d){
+function paintWho(k,d){
   document.querySelectorAll(`[data-who="${k}"]`).forEach(w=>{
     const tr=w.querySelector('.wtrust');
     if(!d.found){tr.className='wtrust';tr.textContent='No one found for '+d.job+'. Reload to try the next role.';return}
@@ -216,7 +217,7 @@ document.querySelectorAll('[data-reach]').forEach(b=>b.addEventListener('click',
   try{const r=await post('/api/reach',{key:b.dataset.reach});const d=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(d.error||'Could not look that up.');
     out.replaceChildren(letter(d));out.dataset.ready='1';out.dataset.label=d.found&&d.subject?'Email':label;out.hidden=false;
-    b.setAttribute('aria-expanded','true');txt.textContent='Hide';paint(b.dataset.team,d)}
+    b.setAttribute('aria-expanded','true');txt.textContent='Hide';paintWho(b.dataset.team,d)}
   catch(e){say(e.message==='Failed to fetch'?'Could not reach Lavoro. Is it still running?':e.message);txt.textContent=label}
   finally{b.disabled=false}}));
 // The buttons on the top cards jump to the team and open (or start) its lookup.
@@ -225,6 +226,7 @@ document.querySelectorAll('[data-go]').forEach(g=>g.addEventListener('click',()=
   t.scrollIntoView({behavior:'smooth',block:'start'});
   const b=t.querySelector('[data-reach]'),out=document.getElementById(b.getAttribute('aria-controls'));
   if(!b.disabled&&(!out.dataset.ready||out.hidden))b.click()}));
+})();
 """
 
 
