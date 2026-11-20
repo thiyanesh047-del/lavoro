@@ -196,6 +196,13 @@ def cmd_run(con, cfg, a):
         for step in (cmd_fetch, cmd_web, cmd_funding, cmd_match, cmd_contacts, cmd_draft, cmd_digest):
             print(f"\n== {step.__name__.removeprefix('cmd_')} ==", flush=True)
             step(con, cfg, a)
+        try:  # logos for companies seen for the first time; a failure here never stops the run
+            from . import logos
+            found, _, _ = logos.fetch_all(con)
+            if found:
+                print(f"\nLogos: {found} new.", flush=True)
+        except Exception as ex:  # noqa: BLE001
+            print(f"\nLogos skipped: {ex}", flush=True)
         from . import notify
         print(notify.after_run(con, cfg, since), flush=True)
     finally:
@@ -226,6 +233,13 @@ def cmd_export(con, cfg, a):
     from . import export
     path, n = export.save(con, a.words, a.out, a.closed)
     print(f"Saved {n} roles to {path.resolve()}" if path else "No saved roles match those words.")
+
+
+def cmd_logos(con, cfg, a):
+    """Fetch company logos from each company's own website into data/logos/."""
+    from . import logos
+    found, missed, had = logos.fetch_all(con, everyone=a.all, force=a.force)
+    print(f"Logos: {found} found, {missed} with none to use, {had} already done.")
 
 
 def cmd_mark(con, cfg, a):
@@ -295,6 +309,9 @@ def main(argv=None):
     p.add_argument("words", nargs="+", help="every word must appear in the company or title, e.g. volvo graduate program")
     p.add_argument("--out", help="file path (default: output/<words>-<date>.docx)")
     p.add_argument("--closed", action="store_true", help="also include roles whose ad has closed")
+    p = sub.add_parser("logos", help="fetch company logos from each company's own website")
+    p.add_argument("--all", action="store_true", help="every company, not only the ones hiring")
+    p.add_argument("--force", action="store_true", help="look again, even for logos already saved")
     p = sub.add_parser("mark", help="set a job's status"); p.add_argument("key"); p.add_argument("status", choices=["sent", "skipped", "drafted", "scored"])
     sub.add_parser("stats", help="counts")
     p = sub.add_parser("notify", help="show the desktop notification now"); p.add_argument("--test", action="store_true")

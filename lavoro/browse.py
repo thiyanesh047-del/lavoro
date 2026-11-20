@@ -8,6 +8,7 @@ import json
 import re
 from urllib.parse import quote, urlencode
 
+from . import logos
 from .digest import CSS as BASE_CSS
 from .digest import JS as BASE_JS
 from .digest import ago, bar, e, head, icon, scene
@@ -118,7 +119,9 @@ header.hero.slim h1{font-size:clamp(44px,6.4vw,68px);max-width:none}
 @media (max-width:980px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .co{display:block;padding:18px 20px;text-decoration:none;transition:transform .2s var(--ease),box-shadow .2s}
 .co:hover{transform:translateY(-2px);box-shadow:0 10px 30px -14px rgba(30,40,30,.3)}
-.co-top{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.co-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.co-id{display:flex;align-items:center;gap:12px;min-width:0}
+.colog{width:42px;height:42px;border-radius:12px;font-size:22px}
 .co-name{font:400 26px/1.1 var(--serif);letter-spacing:-.01em}
 .co-roles{font-size:12.5px;color:var(--mint-ink);font-weight:600;white-space:nowrap}
 .co-roles.none{color:var(--mute);font-weight:500}
@@ -260,7 +263,8 @@ def job_row(r, extra_meta: str = "", with_company: bool = True) -> str:
     company = ""
     if with_company:
         cid = r["cid"] if "cid" in r.keys() else r["company_id"]
-        company = f'<a href="/companies/{cid}">{e(r["company"])}</a>' if cid else e(r["company"])
+        company = (f'<a href="/companies/{cid}">{logos.tile(cid, r["company"], "mini")}{e(r["company"])}</a>' if cid
+                   else e(r["company"]))
     meta = " · ".join(x for x in [company, e(r["location"]), e(r["department"]) if r["department"] else "", extra_meta] if x)
     side = []
     if r["status"] == "drafted":
@@ -454,7 +458,7 @@ def render_companies(con, params: dict) -> str:
             hint = hiring_summary(con, r["id"]) if roles else ""
             line = f'<p class="co-line hint">{e(hint)}</p>' if hint else ""
         meta_html = f'<div class="co-meta">{meta}</div>' if meta else ""
-        cards.append(f'<div class="co-wrap"><a class="card co" href="/companies/{r["id"]}"><div class="co-top"><span class="co-name">{e(r["name"])}</span>'
+        cards.append(f'<div class="co-wrap"><a class="card co" href="/companies/{r["id"]}"><div class="co-top"><span class="co-id">{logos.tile(r["id"], r["name"], "colog")}<span class="co-name">{e(r["name"])}</span></span>'
                      f'<span class="co-roles{"" if roles else " none"}">{roles_txt}</span></div>{line}{meta_html}</a>'
                      f'{star_btn(r["id"], r["name"], bool(r["starred"]), label=False)}</div>')
     listing = (f'<div class="grid">{"".join(cards)}</div>' if cards else

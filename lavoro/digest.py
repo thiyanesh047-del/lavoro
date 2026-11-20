@@ -176,6 +176,13 @@ a.row:hover{background:#fcfbf9}
 .jrow:hover{background:#fcfbf9}
 .jt{font-weight:600;font-size:15px;text-decoration:none}.jt:hover{text-decoration:underline}
 .jm{color:var(--mute);font-size:13.5px;margin-top:2px}
+/* company logos (lavoro/logos.py): the logo sits over the company's first letter */
+.logo-t{position:relative;display:inline-grid;place-items:center;flex:none;overflow:hidden;vertical-align:middle;
+  background:var(--inset);box-shadow:0 0 0 1px var(--line) inset;color:var(--ink);font-family:var(--serif);line-height:1}
+.logo-t:has(img){background:#fff}
+.logo-t img{position:absolute;inset:16%;width:68%;height:68%;object-fit:contain;background:#fff}
+.logo-t.mini{width:20px;height:20px;border-radius:6px;font-size:12px;margin-right:6px;vertical-align:middle;position:relative;top:-1px}
+.logo-t.mini img{inset:10%;width:80%;height:80%}
 .jm a{color:var(--ink-2);text-decoration:none;font-weight:500}.jm a:hover{text-decoration:underline}
 .side{display:flex;align-items:center;gap:14px;color:var(--mute);font-size:12.5px;white-space:nowrap}
 .side .sv{display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right;min-width:52px}

@@ -217,6 +217,28 @@ def make_handler(port: int):
             if path == "/legal":
                 from . import legal
                 return self._send(200, legal.render().encode("utf-8"), "text/html; charset=utf-8")
+            if re.fullmatch(r"/logo/\d+", path):  # a company's logo, fetched once and kept in data/logos/
+                from . import logos
+                cid = int(path.rsplit("/", 1)[1])
+                f = logos.path(cid)
+                if f is None and logos.state(cid) == "unknown":
+                    con = db.connect()
+                    try:
+                        f = logos.fetch(con, cid)
+                    finally:
+                        con.close()
+                if f is None:
+                    return self._send(404, b"", "text/plain")
+                self.send_response(200)
+                self.send_header("Content-Type", logos.TYPES[f.suffix[1:]])
+                self.send_header("Content-Length", str(f.stat().st_size))
+                self.send_header("Cache-Control", "max-age=604800")
+                # An SVG opened on its own must not run scripts on this site.
+                self.send_header("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; sandbox")
+                self.send_header("X-Content-Type-Options", "nosniff")
+                self.end_headers()
+                self.wfile.write(f.read_bytes())
+                return
             if path.startswith("/assets/"):
                 f = (digest.STATIC / path.removeprefix("/assets/")).resolve()
                 if f.parent == digest.STATIC and f.is_file():

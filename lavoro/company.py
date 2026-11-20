@@ -12,6 +12,7 @@ from collections import Counter, defaultdict
 from urllib.parse import quote
 
 from .browse import (CAT_SQL, CATEGORIES, EXT, PIN, _info, _page, _place_text, _places, board_url, job_row, star_btn)
+from . import logos
 from .digest import ago, e, icon
 from .sources import COUNTRY
 
@@ -44,32 +45,40 @@ CSS = r"""
 .block{margin-top:44px}
 .block>h2{margin:0 0 4px}
 .block>.sub{margin:0 0 16px}
-/* top card: who the company is and who hires */
-.ctop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+/* masthead: the company floats on the page background, no card */
+header.hero.slim>.wrap{width:100%}  /* line up with the sections below */
+.ctop{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:28px}
 .ctop .crumbs{margin:0}.ctop .checked{margin:0}
-.co-card{background:rgba(255,255,255,.94);border-radius:22px;padding:28px 30px 22px;
-  box-shadow:0 0 0 1px var(--line) inset,0 24px 48px -30px rgba(23,23,23,.25)}
-.cid{display:flex;gap:20px;align-items:flex-start}
-.mono{flex:none;width:72px;height:72px;border-radius:18px;display:grid;place-items:center;background:var(--inset);
-  box-shadow:0 0 0 1px var(--line) inset;font:400 36px/1 var(--serif);color:var(--ink)}
-.careers{margin:0 0 2px;font:500 13.5px var(--sans);color:var(--mute)}
-.careers .live{color:var(--mint-ink);margin-left:6px}
-.careers .live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--mint);margin-right:6px;vertical-align:1px}
-.co-card h1{margin:0}
-.oneliner{margin:8px 0 0;color:var(--ink-2);font-size:15.5px;max-width:62ch}
-.cchips{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 0}
-.cchip{display:inline-flex;align-items:center;height:30px;padding:0 12px;border-radius:999px;font:500 13.5px var(--sans);
-  background:#fff;box-shadow:0 0 0 1px var(--line) inset;color:var(--ink-2)}
-.cchip.open{background:var(--mint-wash);color:var(--mint-ink);box-shadow:0 0 0 1px var(--mint-ring) inset}
-.cstats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:20px 0 0;padding:18px 0;
-  border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
-.cstats div{min-width:0}.cstats dt{font-size:12.5px;color:var(--mute);margin-bottom:4px}
-.cstats dd{margin:0;font-weight:600;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ph{margin:22px 0 12px;font:600 15px var(--sans);letter-spacing:0}
+.careers{margin:0 0 10px;font:600 12px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--mute)}
+.careers .live{color:var(--mint-ink);margin-left:10px}
+.careers .live::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--mint);margin-right:6px;
+  vertical-align:1px;box-shadow:0 0 0 4px rgba(16,185,129,.18)}
+.cid{display:flex;gap:22px;align-items:center}
+.cid h1{margin:0}
+.mono{width:76px;height:76px;border-radius:20px;font-size:38px}
+.mono.has{background:transparent;box-shadow:none}
+.mono.has img{inset:0;width:100%;height:100%;background:transparent}
+.oneliner{margin:16px 0 0;color:var(--ink-2);font-size:17px;line-height:1.55;max-width:60ch}
+.figs{display:flex;flex-wrap:wrap;align-items:flex-end;row-gap:18px;margin:28px 0 0;padding:0;list-style:none}
+.figs li{padding:2px 28px 2px 0;margin-right:28px;border-right:1px solid rgba(23,23,23,.14);min-width:0}
+.figs li:last-child{border-right:0;margin-right:0;padding-right:0}
+.figs b{display:block;font:400 34px/1.05 var(--serif);letter-spacing:-.02em;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.figs b.word{font-size:26px;line-height:1.25}
+.figs span{display:block;margin-top:6px;font-size:13px;color:var(--mute)}
+.figs li.open b{color:var(--mint-ink)}
+.where{margin:16px 0 0;font-size:14px;color:var(--ink-2)}
+.lbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:22px}
+.lbtn{display:inline-flex;align-items:center;height:38px;padding:0 15px;border-radius:999px;color:var(--ink);text-decoration:none;
+  font:600 14px var(--sans);background:rgba(255,255,255,.6);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  box-shadow:0 0 0 1px rgba(23,23,23,.12) inset}
+.lbtn:hover{background:#fff;box-shadow:0 0 0 1px rgba(23,23,23,.3) inset}
+.people{margin-top:44px}
+.ph{margin:0 0 14px;font:400 26px/1.15 var(--serif);letter-spacing:-.01em}
 .pcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .pcards.n1{grid-template-columns:minmax(0,1fr)}.pcards.n2{grid-template-columns:repeat(2,minmax(0,1fr))}
 .pcard{display:flex;flex-direction:column;justify-content:space-between;gap:16px;padding:18px;border-radius:18px;
-  background:var(--wash);box-shadow:0 0 0 1px var(--ring) inset}
+  background:color-mix(in srgb,var(--wash) 78%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  box-shadow:0 0 0 1px var(--ring) inset,0 18px 40px -28px rgba(23,23,23,.35)}
 .ptop,.hirer{display:flex;gap:12px;align-items:center;min-width:0}
 .av{flex:none;width:48px;height:48px;border-radius:50%;display:grid;place-items:center;font:600 14px var(--sans);color:var(--ink);
   background:radial-gradient(circle at 32% 28%,#fff 0,var(--wash) 38%,var(--ring) 70%,var(--accent) 140%)}
@@ -84,12 +93,7 @@ CSS = r"""
 .seebtn{height:42px;border:0;border-radius:12px;background:#fff;color:var(--ink);font:600 14.5px var(--sans);cursor:pointer;
   box-shadow:0 0 0 1px var(--line) inset,0 2px 6px -2px rgba(23,23,23,.15)}
 .seebtn:hover{box-shadow:0 0 0 1px rgba(23,23,23,.3) inset,0 4px 10px -4px rgba(23,23,23,.25)}
-.cfoot{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px}
-.cfoot p{margin:0;font-size:13.5px;color:var(--ink-2)}.cfoot p a{color:var(--ink);text-underline-offset:3px}
-.lbtns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.lbtn{display:inline-flex;align-items:center;height:38px;padding:0 15px;border-radius:12px;background:#fff;color:var(--ink);
-  text-decoration:none;font:600 14px var(--sans);box-shadow:0 0 0 1px var(--line) inset}
-.lbtn:hover{box-shadow:0 0 0 1px rgba(23,23,23,.35) inset}
+.cfoot{margin:14px 2px 0;font-size:13.5px;color:var(--ink-2)}.cfoot a{color:var(--ink);text-underline-offset:3px}
 /* teams */
 .bhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
 .bhead h2{margin:0 0 4px}.bmeta{font-size:13px;color:var(--mute)}.bmeta a{color:var(--ink-2)}
@@ -136,10 +140,10 @@ CSS = r"""
 .acts a.main{background:var(--rose);color:#fff;box-shadow:none}.acts a.main:hover{background:var(--rose-ink)}
 .acts svg{width:15px;height:15px}
 .reach-msg{margin:0;font-size:14px;color:var(--ink-2)}
-@media (max-width:900px){.pcards,.pcards.n2{grid-template-columns:minmax(0,1fr)}.cstats{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:900px){.pcards,.pcards.n2{grid-template-columns:minmax(0,1fr)}
   .thead{flex-direction:column}.hirer{width:100%}}
-@media (max-width:640px){.co-card{padding:20px 16px}.team.tinted{padding:16px;border-radius:20px}
-  .rrow{grid-template-columns:1fr;gap:10px;padding:14px}.mono{width:56px;height:56px;font-size:28px}
+@media (max-width:640px){.cid{gap:14px}.figs li{padding-right:18px;margin-right:18px}.figs b{font-size:28px}.figs b.word{font-size:21px}.team.tinted{padding:16px;border-radius:20px}
+  .rrow{grid-template-columns:1fr;gap:10px;padding:14px}.mono{width:56px;height:56px;border-radius:16px;font-size:28px}
   .hirer{flex-wrap:wrap}.hirer .mailbtn{width:100%;justify-content:center}}
 /* pay + email format */
 .duo{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
@@ -155,6 +159,7 @@ CSS = r"""
 .sim a{display:block;padding:14px 16px;border-radius:14px;background:#fff;box-shadow:0 0 0 1px var(--line) inset;text-decoration:none}
 .sim a:hover{box-shadow:0 0 0 1px rgba(23,23,23,.35) inset}
 .sim b{display:block;font:400 21px/1.15 var(--serif)}
+.simlogo{width:34px;height:34px;border-radius:10px;font-size:18px;margin-bottom:10px}
 .sim span{display:block;margin-top:4px;font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
 /* pay pages */
 .paylist .prow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px;align-items:center;padding:13px 20px}
@@ -304,7 +309,7 @@ def _people(order, teams, who) -> str:
         cards.append(f'<div class="pcard" style="{_tint(k)}"><div class="ptop">{_avatar(w, k)}'
                      f'<div class="pwho" data-who="{k}">{_who_lines(w, k, len(teams[k]), True)}</div></div>'
                      f'<button class="seebtn" type="button" data-go="{k}">{e(label)}</button></div>')
-    return f'<h2 class="ph">The people who decide who gets hired</h2><div class="pcards n{len(cards)}">{"".join(cards)}</div>'
+    return f'<h2 class="ph">Who decides who gets hired</h2><div class="pcards n{len(cards)}">{"".join(cards)}</div>'
 
 
 # ---------------------------------------------------------------- one role, as a row of chips
@@ -465,26 +470,26 @@ def render_company(con, cid: int) -> str | None:
     who = {k: _who(con, teams[k]) for k in order}
 
     # chips under the name, then the facts strip
-    chips = [f'<span class="cchip open">{n} open role{"s" if n != 1 else ""}</span>' if n else
-             '<span class="cchip">No open roles</span>']
-    fund = con.execute("SELECT round, amount FROM funding WHERE company_id = ? ORDER BY announced DESC LIMIT 1", (cid,)).fetchone()
-    if fund and (fund["round"] or fund["amount"]):
-        chips.append(f'<span class="cchip">{e(" · ".join(x for x in (fund["round"], fund["amount"]) if x))}</span>')
+    figs = [(f"{n:,}", f"open role{'s' if n != 1 else ''}", "open" if n else "")]
+    if jobs:
+        figs.append((str(len(order)), f"team{'s' if len(order) != 1 else ''} hiring", ""))
     remote = sum(1 for r in jobs if r["remote"] or "remote" in (r["location"] or "").lower())
     if remote:
-        chips.append(f'<span class="cchip">{remote} remote</span>')
-    stats = []
+        figs.append((f"{remote:,}", "remote", ""))
     if info.get("team_size") not in (None, "", "None", "0"):
-        stats.append(("Size", f'{e(info["team_size"])} people'))
-    where = _place_text(_places(jobs)) if jobs else ""
-    if where:
-        stats.append(("Hiring in", e(where)))
+        figs.append((e(str(info["team_size"])), "people", ""))
+    fund = con.execute("SELECT round, amount FROM funding WHERE company_id = ? ORDER BY announced DESC LIMIT 1", (cid,)).fetchone()
+    if fund and fund["amount"]:
+        figs.append((e(fund["amount"]), e(f"{fund['round']} round" if fund["round"] else "latest round"), "word"))
     if c["ats"] and c["ats"] != "none":
-        stats.append(("Job board", e(c["ats"].title())))
+        figs.append((e(c["ats"].title()), "job board", "word"))
     if jobs:
-        stats.append(("Newest role", e(ago(jobs[0]["posted_at"] or jobs[0]["first_seen"]))))
-    stat_html = ("<dl class=\"cstats\">" + "".join(f"<div><dt>{a}</dt><dd>{b}</dd></div>" for a, b in stats) + "</dl>"
-                 if stats else "")
+        figs.append((e(ago(jobs[0]["posted_at"] or jobs[0]["first_seen"]).capitalize()), "newest role", "word"))
+    fig_html = '<ul class="figs">' + "".join(
+        f'<li class="{cls if cls == "open" else ""}"><b class="{cls if cls == "word" else ""}">{v}</b><span>{lab}</span></li>'
+        for v, lab, cls in figs) + "</ul>"
+    where = _place_text(_places(jobs)) if jobs else ""
+    where_html = f'<p class="where">Hiring in {e(where)}.</p>' if where else ""
 
     links = [star_btn(c["id"], c["name"], bool(c["starred"]))]
     if c["website"] or c["domain"]:
@@ -503,12 +508,11 @@ def render_company(con, cid: int) -> str | None:
     checked = f'Last checked {e(ago(c["checked_at"]))} · on every run' if c["checked_at"] else ""
     hero = (f'<div class="ctop"><nav class="crumbs" aria-label="Breadcrumb"><a href="/companies">All companies</a><span>/</span>'
             f'<span>{e(c["name"])}</span></nav><span class="checked">{checked}</span></div>'
-            f'<div class="co-card"><div class="cid"><span class="mono" aria-hidden="true">{e((c["name"] or "?")[:1].upper())}</span>'
-            f'<div><p class="careers">Careers at{" <span class=\"live\">Hiring now</span>" if n else ""}</p>'
-            f'<h1>{e(c["name"])}</h1>' + (f'<p class="oneliner">{e(info["one_liner"])}</p>' if info.get("one_liner") else "")
-            + f'</div></div><div class="cchips">{"".join(chips)}</div>{stat_html}'
-            + (_people(order, teams, who) if jobs else "")
-            + f'<div class="cfoot"><p>{foot_note}</p><div class="lbtns">{"".join(links)}</div></div></div>')
+            f'<p class="careers">Careers at {e(c["name"])}{" <span class=\"live\">Hiring now</span>" if n else ""}</p>'
+            f'<div class="cid">{logos.tile(c["id"], c["name"], "mono")}<h1>{e(c["name"])}</h1></div>'
+            + (f'<p class="oneliner">{e(info["one_liner"])}</p>' if info.get("one_liner") else "")
+            + fig_html + where_html + f'<div class="lbtns">{"".join(links)}</div>'
+            + (f'<section class="people">{_people(order, teams, who)}<p class="cfoot">{foot_note}</p></section>' if jobs else ""))
 
     if not jobs:
         body = ('<section class="block"><h2>No open roles</h2><div class="card empty-note">No open roles right now. '
@@ -621,7 +625,7 @@ def _similar(con, c, top_cat) -> str:
     names = dict(con.execute(f"SELECT id, name FROM companies WHERE id IN ({','.join('?' * len(rows))})",
                              [r["company_id"] for r in rows]).fetchall())
     label = TEAM_LABEL[top_cat].lower() if top_cat != "other" else "a mix of"
-    cards = "".join(f'<a href="/companies/{r["company_id"]}"><b>{e(names.get(r["company_id"], "?"))}</b>'
+    cards = "".join(f'<a href="/companies/{r["company_id"]}">{logos.tile(r["company_id"], names.get(r["company_id"], "?"), "simlogo")}<b>{e(names.get(r["company_id"], "?"))}</b>'
                     f'<span>{r["n"]} open {e(label)} role{"s" if r["n"] != 1 else ""}</span></a>' for r in rows)
     return (f'<section class="block"><h2>Others hiring for {e(label)} roles</h2><p class="sub">Companies in your Lavoro '
             f'database whose biggest team is the same kind of work.</p><div class="sim">{cards}</div></section>')
