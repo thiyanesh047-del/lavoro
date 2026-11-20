@@ -196,6 +196,15 @@ def make_handler(port: int):
                 finally:
                     con.close()
                 return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
+            if path in ("/terms", "/privacy"):  # short links to the matching part of /legal
+                self.send_response(302)
+                self.send_header("Location", "/legal" + ("#privacy" if path == "/privacy" else ""))
+                self.send_header("Content-Length", "0")
+                self.end_headers()
+                return
+            if path == "/legal":
+                from . import legal
+                return self._send(200, legal.render().encode("utf-8"), "text/html; charset=utf-8")
             if path.startswith("/assets/"):
                 f = (digest.STATIC / path.removeprefix("/assets/")).resolve()
                 if f.parent == digest.STATIC and f.is_file():

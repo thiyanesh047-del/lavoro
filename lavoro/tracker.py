@@ -331,7 +331,7 @@ def render(con, cfg) -> str:
 {bar("/tracker")}
 <header class="hero slim"><div class="wrap">{hero}</div></header>
 <main><div class="wrap">{due_html}{sheet}{rec_html}</div></main>
-<footer><div class="wrap"><span>Lavoro · your tracker stays on this computer</span><span><a href="/">Today</a></span></div></footer>
+<footer><div class="wrap"><span>Lavoro · your tracker stays on this computer</span><span><a href="/legal">Terms and privacy</a> · <a href="/">Today</a></span></div></footer>
 <div class="toast" role="status" aria-live="polite"></div>
 <script>{BASE_JS}</script><script>{JS}{TRACK_JS}</script></body></html>"""
 
@@ -441,6 +441,6 @@ def render_row(con, cfg, rid: int) -> str | None:
 {bar("/tracker")}
 <header class="hero slim"><div class="wrap detail">{hero}</div></header>
 <main><div class="wrap detail">{kit_card}{fu_card}</div></main>
-<footer><div class="wrap"><span>Lavoro · your tracker stays on this computer</span><span><a href="/tracker">Tracker</a></span></div></footer>
+<footer><div class="wrap"><span>Lavoro · your tracker stays on this computer</span><span><a href="/legal">Terms and privacy</a> · <a href="/tracker">Tracker</a></span></div></footer>
 <div class="toast" role="status" aria-live="polite"></div>
 <script>{BASE_JS}</script><script>{ROW_JS}</script></body></html>"""

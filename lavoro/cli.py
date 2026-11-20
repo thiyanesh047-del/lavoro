@@ -122,6 +122,13 @@ def cmd_describe(con, cfg, a):
     print(f"Described {describe.describe_companies(con, getattr(a, 'limit', 400) or 400)} companies.")
 
 
+def cmd_legal(con, cfg, a):
+    """Write the terms and privacy page to docs/legal.html, for GitHub Pages."""
+    from . import legal
+    from .config import ROOT
+    print(f"Wrote {legal.write_docs(ROOT)}")
+
+
 def cmd_match(con, cfg, a):
     n = match.apply_filter(con, cfg)
     print(f"{n} new jobs passed the title/location filter.")
@@ -281,6 +288,7 @@ def main(argv=None):
     sub.add_parser("stats", help="counts")
     p = sub.add_parser("notify", help="show the desktop notification now"); p.add_argument("--test", action="store_true")
     p = sub.add_parser("region", help="show or set the search region"); p.add_argument("name", nargs="?", choices=list(regions.LABELS))
+    sub.add_parser("legal", help="write the terms and privacy page to docs/legal.html")
     sub.add_parser("ai-check", help="one tiny Claude call to confirm the AI backend works")
     p = sub.add_parser("serve", help="open the Lavoro site on http://127.0.0.1:8765 (this computer only)")
     p.add_argument("--port", type=int, default=8765); p.add_argument("--open", action="store_true")

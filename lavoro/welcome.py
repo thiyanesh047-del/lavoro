@@ -391,7 +391,7 @@ def render(cfg) -> str:
     return f"""{head("Lavoro · Welcome")}<style>{CSS}</style></head>
 <body class="welcome" data-live="1">
 {scene()}
-<div class="bar"><div class="wrap"><span class="brand"><span class="mark">{icon("send")}</span>Lavoro</span>
+<div class="bar"><div class="wrap"><span class="brand"><span class="mark">{icon("send")}</span><span class="wm">Lavoro</span></span>
 <span class="bar-right"><span class="pill quiet">Runs on your computer</span></span></div></div>
 <template id="xicon">{ic("x")}</template>
 <div class="dropzone" aria-hidden="true"><p>Drop your CV to start</p></div>

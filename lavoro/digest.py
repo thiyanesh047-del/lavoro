@@ -72,6 +72,8 @@ code{font:500 13px/1 ui-monospace,"Cascadia Code",Consolas,monospace;background:
 .mark{width:30px;height:30px;border-radius:9px;background:var(--rose);color:#fff;display:grid;place-items:center;
   box-shadow:0 4px 10px -2px var(--rose-glow)}
 .mark svg{width:16px;height:16px}
+/* Soria sits high in its line box: drop the word so its capitals centre on the icon. */
+.brand .wm{transform:translateY(.13em)}
 .bar-right{display:flex;gap:8px;align-items:center}
 .pill{display:inline-flex;align-items:center;gap:8px;min-height:36px;padding:0 14px;border-radius:999px;
   background:var(--mint-wash);color:var(--mint-ink);font:600 13.5px/1 var(--sans);box-shadow:0 0 0 1px var(--mint-ring) inset;
@@ -424,7 +426,7 @@ def bar(active: str | None, right: str = "") -> str:
     if active is not None:
         nav = '<nav class="nav" aria-label="Main">' + "".join(
             f'<a href="{href}"{' aria-current="page"' if href == active else ''}>{label}</a>' for href, label in NAV) + "</nav>"
-    brand = f'<a class="brand" href="/"><span class="mark">{icon("send")}</span>Lavoro</a>' if active is not None else         f'<span class="brand"><span class="mark">{icon("send")}</span>Lavoro</span>'
+    brand = f'<a class="brand" href="/"><span class="mark">{icon("send")}</span><span class="wm">Lavoro</span></a>' if active is not None else         f'<span class="brand"><span class="mark">{icon("send")}</span><span class="wm">Lavoro</span></span>'
     return f'<div class="bar"><div class="wrap">{brand}{nav}<span class="bar-right">{right}</span></div></div>'
 
 
@@ -530,7 +532,7 @@ def render(con, cfg, live: bool = False) -> str:
     out.append("</details></section></div></main>")
 
     out.append(f"""<footer><div class="wrap"><span>Lavoro · built {datetime.now():%H:%M} from your local database</span>
-<span>Nothing here is sent until you send it.{' · <a href="/welcome">Set up again</a>' if live else ''}</span></div></footer>
+<span>Nothing here is sent until you send it.{' · <a href="/legal">Terms and privacy</a> · <a href="/welcome">Set up again</a>' if live else ''}</span></div></footer>
 <div class="toast" role="status" aria-live="polite"></div><script>{JS}{_track_js() if live else ""}</script></body></html>""")
     return "\n".join(out)
 

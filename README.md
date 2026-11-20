@@ -217,6 +217,10 @@ It uses the `gmail.compose` scope: Lavoro can create drafts but cannot read your
 - **Lavoro does not scrape LinkedIn or log into any site.** It reads public job feeds, company websites and search results only. A LinkedIn job found by web search is kept as a title, a company and a link for you to open yourself.
 - **Your tracker stays local too.** It lives in `data/lavoro.db`, like everything else.
 
+## Terms and privacy
+
+By using Lavoro you accept its [terms of use and privacy notice](https://thiyanesh047-del.github.io/lavoro/legal.html) (also at http://127.0.0.1:8765/legal while Lavoro runs, and in [docs/legal.html](docs/legal.html)). In short: Lavoro runs on your computer and only drafts. You decide what it does and what you send, so you are responsible for how you use it. It comes as is, with no warranty and no liability.
+
 ## License
 
 The code is MIT licensed. See [LICENSE](LICENSE).

@@ -188,7 +188,7 @@ def _page(title: str, active: str, hero: str, body: str) -> str:
 <header class="hero slim"><div class="wrap">{hero}</div></header>
 <main><div class="wrap">{body}</div></main>
 <footer><div class="wrap"><span>Lavoro · read from public job boards, on your computer</span>
-<span><a href="/welcome">Set up again</a></span></div></footer>
+<span><a href="/legal">Terms and privacy</a> · <a href="/welcome">Set up again</a></span></div></footer>
 <div class="toast" role="status" aria-live="polite"></div>
 <script>{BASE_JS}</script><script>{JS}{TRACK_JS}</script></body></html>"""
 
