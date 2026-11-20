@@ -17,7 +17,7 @@ The pipeline is a Python package in this folder (`lavoro/`). Its AI steps call t
    python -m lavoro run
    ```
 
-   If the user asked for a fresh company list, or it is Monday, add `--discover`. That re-seeds the YC companies and detects their job boards first.
+   If the user asked for a fresh company list, or it is Monday, add `--discover`. That re-seeds the YC companies and the bundled startup list and detects their job boards first.
 
 3. **Report.** When the run finishes, read the counts it printed. Then report:
    - New jobs found and how many passed the filter.

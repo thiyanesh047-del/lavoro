@@ -74,6 +74,10 @@ python -m lavoro seed-yc
 ```
 
 ```bash
+python -m lavoro seed-startups
+```
+
+```bash
 python -m lavoro detect --limit 1000
 ```
 

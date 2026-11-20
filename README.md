@@ -80,6 +80,10 @@ These steps go in order.
    ```
 
    ```bash
+   python -m lavoro seed-startups
+   ```
+
+   ```bash
    python -m lavoro detect --limit 1000
    ```
 
@@ -99,7 +103,7 @@ These steps go in order.
 
 | Step | Command | What it does |
 |---|---|---|
-| Company list | `seed-yc`, `add`, `probe` | Seeds Y Combinator companies that are hiring, plus any company you add by website or name. |
+| Company list | `seed-yc`, `seed-startups`, `add`, `probe` | Seeds Y Combinator companies that are hiring and a bundled list of about 6,800 startups that are hiring, each with its job board (`lavoro/lists/startups.csv`), plus any company you add by website or name. Turn the bundled list off with `search.startups.enabled: false`. |
 | Board detection | `detect` | Finds each company's job board: Greenhouse, Lever, Ashby, Workable, Recruitee, Teamtailor, SmartRecruiters, Workday or SAP SuccessFactors. Workday and SuccessFactors boards (used by big employers such as Volvo) cannot be guessed from a name: add them by pasting the careers link. |
 | Fetch | `fetch` | Reads every open role from each board's public feed. No key needed. It also reads the latest Hacker News "Who is hiring?" thread (posts often include the founder's email), [Arbeitnow](https://www.arbeitnow.com)'s free European job API, and, in Sweden, Platsbanken through the JobTech API. |
 | Web search | `web` | Claude searches the web for postings the boards miss: company career pages, local job sites and LinkedIn job listings. It reads search results only and never opens a LinkedIn page. Old LinkedIn ads, which search engines keep listing, are dropped. One Claude call per run. |
@@ -185,7 +189,7 @@ Changing the region sends jobs the old region skipped back through the filter on
 ## Every morning, automatically
 
 - **Windows:** Task Scheduler → Create Basic Task → Daily → Start a program → `run_daily.bat`. Run the task as your own user, so the `claude` login is available. Turn on "Run task as soon as possible after a scheduled start is missed". The log goes to `output/run.log`. Extra arguments are passed on, e.g. `run_daily.bat --region europe`.
-- **Once a week** the daily run also refreshes the YC company list and finds new job boards (`search.yc.refresh_days`).
+- **Once a week** the daily run also refreshes the YC company list, adds any new companies from the bundled startup list, and finds new job boards (`search.yc.refresh_days`).
 - **macOS/Linux:** add a cron line:
 
   ```

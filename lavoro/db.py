@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS companies (
     domain      TEXT,
     ats         TEXT,            -- greenhouse | lever | ashby | workable | recruitee | teamtailor | smartrecruiters | none
     slug        TEXT,
-    source      TEXT,            -- yc | manual | probe | jobtech
+    source      TEXT,            -- yc | startups | manual | probe | jobtech
     info        TEXT,            -- one-liner, team size, batch...
     checked_at  TEXT,
     UNIQUE(ats, slug)

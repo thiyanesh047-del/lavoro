@@ -17,6 +17,11 @@ def cmd_seed_yc(con, cfg, a):
     print(f"Added {n} YC companies. Next: python -m lavoro detect")
 
 
+def cmd_seed_startups(con, cfg, a):
+    n = discover.seed_startups(con)
+    print(f"Added {n} companies from the bundled startup list.")
+
+
 def cmd_detect(con, cfg, a):
     checked, found = discover.detect_all(con, a.limit)
     print(f"Checked {checked} companies, found a job board for {found}.")
@@ -190,6 +195,8 @@ def cmd_run(con, cfg, a):
         if a.discover or (days and stale and not getattr(a, "no_refresh", False)):
             print("\n== companies ==", flush=True)
             cmd_seed_yc(con, cfg, a)
+            if cfg.get("search", {}).get("startups", {}).get("enabled", True):
+                cmd_seed_startups(con, cfg, a)
             cmd_detect(con, cfg, a)
             cmd_describe(con, cfg, a)
             stamp.write_text(db.now(), encoding="utf-8")
@@ -287,6 +294,7 @@ def main(argv=None):
     ap.add_argument("--config", help="path to config.yaml")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("seed-yc", help="add YC companies that are hiring in your regions")
+    sub.add_parser("seed-startups", help="add the bundled list of about 6,800 startups that are hiring, with their job boards")
     p = sub.add_parser("detect", help="find the job board (ATS) for companies without one"); p.add_argument("--limit", type=int, default=200)
     p = sub.add_parser("add", help="add a company by name, website or careers URL"); p.add_argument("url", metavar="name_or_url"); p.add_argument("--name")
     p = sub.add_parser("probe", help="guess a company's job board from its name"); p.add_argument("names", nargs="+"); p.add_argument("--domain")
@@ -300,7 +308,7 @@ def main(argv=None):
     sub.add_parser("draft", help="write emails for top jobs")
     p = sub.add_parser("digest", help="build the HTML digest"); p.add_argument("--open", action="store_true")
     p = sub.add_parser("run", help="fetch → match → contacts → draft → digest")
-    p.add_argument("--discover", action="store_true", help="also re-seed YC and detect boards first")
+    p.add_argument("--discover", action="store_true", help="also re-seed YC and the bundled startup list and detect boards first")
     p.add_argument("--region", choices=list(regions.LABELS), help="search this region for this run only")
     p.add_argument("--no-refresh", action="store_true", help="skip the weekly company-list refresh")
     p.add_argument("--limit", type=int, default=200); p.add_argument("--open", action="store_true")

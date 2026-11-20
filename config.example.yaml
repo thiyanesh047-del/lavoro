@@ -66,6 +66,11 @@ search:
     enabled: true
     months: 1        # how many recent threads to read
 
+  # A bundled list of about 6,800 startups that are hiring, each with its job board (lavoro/lists/startups.csv).
+  # Added with the weekly company refresh, or now: python -m lavoro seed-startups
+  startups:
+    enabled: true
+
   # Y Combinator companies that are hiring, used to seed the company list.
   yc:
     enabled: true

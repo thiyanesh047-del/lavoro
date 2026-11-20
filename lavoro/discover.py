@@ -1,9 +1,12 @@
-"""Building the company list: YC seed, ATS detection from a website, slug probing."""
+"""Building the company list: YC seed, the bundled startup list, ATS detection from a website, slug probing."""
 from __future__ import annotations
 
+import csv
 import json
 import re
+import sqlite3
 from concurrent.futures import ThreadPoolExecutor
+from pathlib import Path
 from urllib.parse import urljoin, urlparse
 
 from . import db
@@ -137,6 +140,34 @@ def seed_yc(con, regions: list[str]) -> int:
                           ensure_ascii=False)
         db.upsert_company(con, name=c["name"], website=c.get("website"), domain=dom, source="yc", info=info)
         n += 0 if exists else 1
+    con.commit()
+    db.merge_duplicate_companies(con)
+    return n
+
+
+LISTS_DIR = Path(__file__).parent / "lists"
+
+
+def seed_startups(con) -> int:
+    """Add the bundled list of startups that are hiring, each with its job board (lavoro/lists/startups.csv:
+    name, ats, slug). Returns how many companies are new."""
+    path = LISTS_DIR / "startups.csv"
+    if not path.exists():
+        print("The bundled startup list is missing: lavoro/lists/startups.csv")
+        return 0
+    n = 0
+    with path.open(encoding="utf-8", newline="") as f:
+        for row in csv.DictReader(f):
+            if row["ats"] not in ATS_FETCHERS or not row["slug"]:
+                continue
+            if con.execute("SELECT 1 FROM companies WHERE ats=? AND slug=?", (row["ats"], row["slug"])).fetchone():
+                continue
+            existed = con.execute("SELECT 1 FROM companies WHERE lower(name)=lower(?)", (row["name"],)).fetchone()
+            try:
+                db.upsert_company(con, name=row["name"], ats=row["ats"], slug=row["slug"], source="startups")
+            except sqlite3.IntegrityError:  # a same-name company already holds this board under another row
+                continue
+            n += 0 if existed else 1
     con.commit()
     db.merge_duplicate_companies(con)
     return n
