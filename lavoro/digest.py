@@ -418,7 +418,8 @@ def scene() -> str:
 
 
 CURRENT = ' aria-current="page"'  # outside the f-string below: Python before 3.12 cannot reuse its quote
-NAV = [("/", "Today"), ("/jobs", "All jobs"), ("/roles", "Roles"), ("/companies", "Companies"), ("/tracker", "Tracker")]
+NAV = [("/", "Today"), ("/jobs", "All jobs"), ("/roles", "Roles"), ("/pay", "Pay"), ("/companies", "Companies"),
+       ("/tracker", "Tracker")]
 
 
 def bar(active: str | None, right: str = "") -> str:

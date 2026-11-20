@@ -56,9 +56,11 @@ def learn_pattern(name: str, email: str) -> str | None:
     return None
 
 
-def known_pattern(con, domain: str) -> str | None:
-    """Email pattern for a domain, learned from any named contact we already have on it."""
-    for r in con.execute("SELECT name, email FROM contacts WHERE email LIKE ? AND name IS NOT NULL", (f"%@{domain}",)):
+def known_pattern(con, domain: str, confirmed_only: bool = False) -> str | None:
+    """Email pattern for a domain, learned from any named contact we already have on it. With confirmed_only, only
+    addresses printed in an ad or on a public page, or verified, count (never ones Lavoro guessed)."""
+    extra = " AND email_status IN ('listed_in_ad','published','verified')" if confirmed_only else ""
+    for r in con.execute("SELECT name, email FROM contacts WHERE email LIKE ? AND name IS NOT NULL" + extra, (f"%@{domain}",)):
         p = learn_pattern(r["name"], r["email"])
         if p:
             return p
@@ -173,14 +175,20 @@ def _insert(con, job_key, name, title, email, status, source, url=None, note=Non
                 (job_key, name, title, email, status, source, url, note, db.now()))
 
 
-def find_contacts(con, cfg) -> int:
+def find_contacts(con, cfg, keys: list[str] | None = None) -> int:
+    """Find the hiring lead for the top scored jobs, or, with `keys`, for exactly those jobs (the "Find who hires" button)."""
     cc = cfg.get("contacts", {})
-    rows = con.execute(
-        """SELECT j.*, c.domain AS c_domain FROM jobs j LEFT JOIN companies c ON c.id = j.company_id
-           WHERE j.status='scored' AND j.score >= ?
-           ORDER BY j.score DESC, j.first_seen DESC LIMIT ?""",
-        (min_score(cfg), cc.get("max_jobs_per_run", 15)),
-    ).fetchall()
+    if keys:
+        rows = con.execute(
+            f"""SELECT j.*, c.domain AS c_domain FROM jobs j LEFT JOIN companies c ON c.id = j.company_id
+                WHERE j.key IN ({",".join("?" * len(keys))})""", keys).fetchall()
+    else:
+        rows = con.execute(
+            """SELECT j.*, c.domain AS c_domain FROM jobs j LEFT JOIN companies c ON c.id = j.company_id
+               WHERE j.status='scored' AND j.score >= ?
+               ORDER BY j.score DESC, j.first_seen DESC LIMIT ?""",
+            (min_score(cfg), cc.get("max_jobs_per_run", 15)),
+        ).fetchall()
     hunter_key = _hunter_key(cfg)
     use_web = cc.get("use_web_search", True) and has_claude()
 

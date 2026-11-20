@@ -102,12 +102,16 @@ def _template(cfg, job, contact) -> Email:
     return Email(subject=f"{job['title']} at {job['company']}", body=body + "\n\n" + signature(cfg))
 
 
-def write_drafts(con, cfg, gmail_service=None) -> int:
+def write_drafts(con, cfg, gmail_service=None, keys: list[str] | None = None) -> int:
+    """Draft an email for each looked-up top job, or, with `keys`, for exactly those jobs."""
     lc, ec, me = cfg.get("llm", {}), cfg.get("email", {}), cfg.get("me", {})
-    jobs = con.execute(
-        "SELECT * FROM jobs WHERE status='looked_up' AND score >= ? ORDER BY score DESC",
-        (min_score(cfg),),
-    ).fetchall()
+    if keys:
+        jobs = con.execute(f"SELECT * FROM jobs WHERE key IN ({','.join('?' * len(keys))})", keys).fetchall()
+    else:
+        jobs = con.execute(
+            "SELECT * FROM jobs WHERE status='looked_up' AND score >= ? ORDER BY score DESC",
+            (min_score(cfg),),
+        ).fetchall()
     profile = read_profile(cfg)
     todo = []
     for j in jobs:
@@ -133,7 +137,7 @@ def write_drafts(con, cfg, gmail_service=None) -> int:
             profile=profile + f"\n\nName: {me.get('name')}")
         who = c["name"] or (f"probably {greeting_name(c)} (from the email address)" if greeting_name(c) else "(no name: the application inbox)")
         user = (f"RECIPIENT: {who} <{c['email']}> — {c['title'] or ''}\n"
-                f"ROLE: {j['title']} at {j['company']} ({j['location']})\nWHY IT FITS (screening note): {j['score_reason']}\n\n"
+                f"ROLE: {j['title']} at {j['company']} ({j['location']})\nWHY IT FITS (screening note): {j['score_reason'] or '-'}\n\n"
                 f"JOB AD:\n{j['description']}")
         try:
             e = llm.parse(effort=lc.get("draft_effort", "medium"), system=system, user=user, schema=Email, max_tokens=8000)

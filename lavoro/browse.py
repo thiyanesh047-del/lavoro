@@ -283,6 +283,7 @@ def render_jobs(con, params: dict) -> str:
     q, where = params.get("q", "").strip(), params.get("where", "").strip()
     cat = params.get("cat", "") if params.get("cat", "") in dict(CATEGORIES) else ""
     remote, pay, page = params.get("remote") == "1", params.get("pay") == "1", _int(params.get("page"))
+    visa = params.get("visa") == "1"
 
     cond, args = ["j.status NOT IN ('closed','duplicate')"], []
     if q:
@@ -295,6 +296,9 @@ def render_jobs(con, params: dict) -> str:
         cond.append("(j.remote = 1 OR lower(j.location) LIKE '%remote%')")
     if pay:
         cond.append("j.salary IS NOT NULL AND j.salary <> ''")
+    if visa:  # the ad mentions a visa, sponsorship or relocation
+        cond.append("(lower(j.description) LIKE '%visa%' OR lower(j.description) LIKE '%relocat%' "
+                    "OR lower(j.description) LIKE '%sponsorship%')")
     base = f"SELECT j.*, {CAT_SQL} AS cat, (SELECT 1 FROM pipeline p WHERE p.job_key = j.key) AS tracked FROM jobs j WHERE {' AND '.join(cond)}"
 
     counts = dict(con.execute(f"SELECT cat, count(*) FROM ({base}) GROUP BY cat", args).fetchall())
@@ -311,7 +315,7 @@ def render_jobs(con, params: dict) -> str:
             f'their own job boards{" and Platsbanken" if con.execute("SELECT 1 FROM jobs WHERE source=? LIMIT 1", ("jobtech",)).fetchone() else ""}. '
             f'Roles that close are removed on the next run.</p>')
 
-    keep = {"q": q, "where": where, "remote": "1" if remote else "", "pay": "1" if pay else ""}
+    keep = {"q": q, "where": where, "remote": "1" if remote else "", "pay": "1" if pay else "", "visa": "1" if visa else ""}
     tabs = "".join(
         f'<a class="tab" href="/jobs{e(_qs(keep, cat=k))}"{" aria-current=page" if k == cat else ""}>{label}'
         f'<span>{(counts.get(k, 0) if k else total_all):,}</span></a>' for k, label in CATEGORIES)
@@ -321,6 +325,7 @@ def render_jobs(con, params: dict) -> str:
 {f'<input type="hidden" name="cat" value="{e(cat)}">' if cat else ''}
 <label class="toggle"><input type="checkbox" name="remote" value="1"{" checked" if remote else ""}>Remote</label>
 <label class="toggle"><input type="checkbox" name="pay" value="1"{" checked" if pay else ""}>Pay listed</label>
+<label class="toggle"><input type="checkbox" name="visa" value="1"{" checked" if visa else ""}>Visa or relocation</label>
 <button class="apply" type="submit">Search</button></div>
 <div class="tabs">{tabs}</div></form>"""
 
@@ -331,7 +336,7 @@ def render_jobs(con, params: dict) -> str:
     if q:
         slug = re.sub(r"[^a-z0-9åäö]+", "-", q.lower()).strip("-")
         insight = f' · <a href="/roles/{e(slug)}">Pay and skills for “{e(q)}” →</a>'
-    showing = f'<p class="results">{total:,} role{"s" if total != 1 else ""}{" match" if (q or where or remote or pay or cat) else ""}, newest first.{insight}</p>'
+    showing = f'<p class="results">{total:,} role{"s" if total != 1 else ""}{" match" if (q or where or remote or pay or visa or cat) else ""}, newest first.{insight}</p>'
     body = form + showing + listing + (_pager("/jobs", {**keep, "cat": cat}, page, total, PAGE_JOBS) if total > PAGE_JOBS else "")
     return _page("Lavoro · All jobs", "/jobs", hero, body)
 
@@ -391,6 +396,7 @@ def render_companies(con, params: dict) -> str:
     q = params.get("q", "").strip()
     hiring, has_board = params.get("hiring") == "1", params.get("board") == "1"
     following = params.get("following") == "1"
+    fresh = params.get("new") == "1"
     sort = "az" if params.get("sort") == "az" else "roles"
     page = _int(params.get("page"))
     cond, args = ["1=1"], []
@@ -401,6 +407,9 @@ def render_companies(con, params: dict) -> str:
         cond.append("c.ats IS NOT NULL AND c.ats <> 'none'")
     if following:
         cond.append("c.starred = 1")
+    if fresh:  # posted or first seen in the last seven days
+        cond.append("EXISTS (SELECT 1 FROM jobs j WHERE j.company_id = c.id AND j.status NOT IN ('closed','duplicate') "
+                    "AND substr(coalesce(j.posted_at, j.first_seen), 1, 10) >= date('now', '-7 day'))")
     base = (f"SELECT c.*, (SELECT count(*) FROM jobs j WHERE j.company_id = c.id AND j.status NOT IN ('closed','duplicate')) AS roles "
             f"FROM companies c WHERE {' AND '.join(cond)}")
     outer = f"SELECT * FROM ({base})" + (" WHERE roles > 0" if hiring else "")
@@ -417,12 +426,13 @@ def render_companies(con, params: dict) -> str:
             f'<button class="apply" type="submit">Add</button></form>'
             f'<p class="addco-note" role="status" aria-live="polite">Works for companies hiring on {SUPPORTED}.</p>')
     keep ={"q": q, "hiring": "1" if hiring else "", "board": "1" if has_board else "", "following": "1" if following else "",
-            "sort": sort if sort == "az" else ""}
+            "new": "1" if fresh else "", "sort": sort if sort == "az" else ""}
     form = f"""<form class="filters" method="get" action="/companies" role="search">
 <div class="frow"><label class="search">{SEARCH}<input type="search" name="q" value="{e(q)}" placeholder="Company, product or field" aria-label="Search companies"></label>
 <label class="toggle"><input type="checkbox" name="hiring" value="1"{" checked" if hiring else ""}>Hiring now</label>
 <label class="toggle"><input type="checkbox" name="board" value="1"{" checked" if has_board else ""}>Has a job board</label>
 <label class="toggle"><input type="checkbox" name="following" value="1"{" checked" if following else ""}>Following</label>
+<label class="toggle"><input type="checkbox" name="new" value="1"{" checked" if fresh else ""}>New roles this week</label>
 {f'<input type="hidden" name="sort" value="az">' if sort == "az" else ''}
 <button class="apply" type="submit">Search</button></div>
 <div class="tabs"><a class="tab" href="/companies{e(_qs(keep, sort=''))}"{" aria-current=page" if sort == "roles" else ""}>Most roles</a>
@@ -456,97 +466,5 @@ def render_companies(con, params: dict) -> str:
 
 # ---------------------------------------------------------------- /companies/<id>
 def render_company(con, cid: int) -> str | None:
-    c = con.execute("SELECT * FROM companies WHERE id = ?", (cid,)).fetchone()
-    if c is None:
-        return None
-    info = _info(c)
-    jobs = con.execute(
-        f"SELECT j.*, {CAT_SQL} AS cat, (SELECT 1 FROM pipeline p WHERE p.job_key = j.key) AS tracked FROM jobs j WHERE j.company_id = ? AND j.status NOT IN ('closed','duplicate') "
-        "ORDER BY substr(coalesce(j.posted_at, j.first_seen), 1, 10) DESC", (cid,)).fetchall()
-    facts = [star_btn(c["id"], c["name"], bool(c["starred"]))]
-    if c["website"] or c["domain"]:
-        site = c["website"] or f"https://{c['domain']}"
-        facts.append(f'<a class="fact" href="{e(site)}" target="_blank" rel="noopener">{EXT}{e(c["domain"] or site)}</a>')
-    board = board_url(c["ats"], c["slug"])
-    if board:
-        facts.append(f'<a class="fact" href="{e(board)}" target="_blank" rel="noopener">{EXT}Job board ({e(c["ats"].title())})</a>')
-    if info.get("yc_url"):
-        facts.append(f'<a class="fact" href="{e(info["yc_url"])}" target="_blank" rel="noopener">{EXT}YC {e(info.get("batch") or "profile")}</a>')
-    if info.get("team_size") not in (None, "", "None", "0"):
-        facts.append(f'<span class="fact">{e(info["team_size"])} people</span>')
-    if info.get("locations"):
-        facts.append(f'<span class="fact">{PIN}{e(info["locations"][:60])}</span>')
-    n = len(jobs)
-    hero = (f'<h1>{e(c["name"])}</h1>'
-            + (f'<p class="count">{e(info["one_liner"])}</p>' if info.get("one_liner") else "")
-            + (f'<div class="facts">{"".join(facts)}</div>' if facts else ""))
-    if not jobs:
-        body = (f'<section><h2>No open roles</h2><div class="card empty-note">No open roles right now. '
-                'Lavoro checks again on every run.</div></section>')
-    else:
-        body = (f'<section><h2>{n} open role{"s" if n != 1 else ""}, by team</h2>'
-                f'<p class="sub">From {e(c["name"])}\'s own job board. Teams are grouped by the kind of work, newest roles first.</p>'
-                + _teams_html(con, c, jobs) + '</section>')
-    return _page(f"Lavoro · {c['name']}", "/companies", hero, body)
-
-
-TEAM_LABEL = dict(CATEGORIES) | {"tech": "Tech", "other": "Other roles"}
-TEAM_COLOR = {"tech": "#171717", "design": "#e11d48", "product": "#9f1239", "marketing": "#fb7185", "sales": "#78716c",
-              "operations": "#a8a29e", "healthcare": "#0f766e", "other": "#d6d3d1"}
-SHOW_PER_TEAM = 5
-
-
-def _newest(rows) -> str:
-    return ago(rows[0]["posted_at"] or rows[0]["first_seen"]) if rows else ""
-
-
-def _contact_for(con, keys: list[str]):
-    """The best contact Lavoro already found for any of these roles, or None. Found, never guessed here."""
-    if not keys:
-        return None
-    rank = {"listed_in_ad": 0, "verified": 1, "published": 2, "likely": 3, "guessed": 4}
-    q = ",".join("?" * len(keys))
-    found = con.execute(f"SELECT c.*, j.title AS job_title FROM contacts c JOIN jobs j ON j.key = c.job_key "
-                        f"WHERE c.job_key IN ({q}) AND coalesce(c.name, '') <> ''", keys).fetchall()
-    return min(found, key=lambda r: rank.get(r["email_status"] or "", 9)) if found else None
-
-
-def _teams_html(con, company, jobs) -> str:
-    from collections import defaultdict
-    teams = defaultdict(list)
-    for r in jobs:
-        teams[r["cat"]].append(r)
-    order = sorted(teams, key=lambda k: (k == "other", -len(teams[k])))
-    n = len(jobs)
-
-    bar = "".join(f'<span style="flex:{len(teams[k])};background:{TEAM_COLOR[k]}" title="{e(TEAM_LABEL[k])}: {len(teams[k])}"></span>'
-                  for k in order)
-    key = "".join(f'<a href="#team-{k}"><i style="background:{TEAM_COLOR[k]}"></i>{e(TEAM_LABEL[k])}<b>{len(teams[k])}</b></a>'
-                  for k in order)
-    out = [f'<div class="mix"><div class="mixbar" role="img" aria-label="Open roles by team">{bar}</div>'
-           f'<nav class="mixkey" aria-label="Jump to a team">{key}</nav></div>']
-
-    for k in order:
-        rows = teams[k]
-        cnt = len(rows)
-        where = _place_text(_places(rows))
-        sub_line = (f'{cnt} open role{"s" if cnt != 1 else ""}' + (f' in {where}' if where else '')
-                    + f', newest {_newest(rows)}.')
-        lead = _contact_for(con, [r["key"] for r in rows])
-        lead_html = ""
-        if lead:
-            initials = "".join(w[0] for w in (lead["name"] or "?").split()[:2]).upper()
-            title = f', {e(lead["title"])}' if lead["title"] else ""
-            lead_html = (f'<div class="lead-row"><span class="av">{e(initials)}</span><span>Lavoro found <b>{e(lead["name"])}</b>{title}, '
-                         f'for {e(lead["job_title"])}.</span></div>')
-        shown = "".join(job_row(r, with_company=False) for r in rows[:SHOW_PER_TEAM])
-        rest = rows[SHOW_PER_TEAM:]
-        more = (f'<details class="more-roles"><summary>Show {len(rest)} more {e(TEAM_LABEL[k].lower() if k != "other" else "other")} '
-                f'role{"s" if len(rest) != 1 else ""}</summary>{"".join(job_row(r, with_company=False) for r in rest)}</details>'
-                if rest else "")
-        jobs_link = f'/jobs?q={quote(company["name"])}' + (f'&cat={k}' if k != "other" else "")
-        out.append(f'<section class="team" id="team-{k}"><div class="team-head"><h3><i style="background:{TEAM_COLOR[k]}"></i>'
-                   f'{e(TEAM_LABEL[k])}<small>{cnt}</small></h3>'
-                   + (f'<a href="{e(jobs_link)}">Open in All jobs</a>' if cnt > SHOW_PER_TEAM else '')
-                   + f'</div><p class="team-sub">{e(sub_line)}</p>{lead_html}<div class="card list">{shown}{more}</div></section>')
-    return "".join(out)
+    from .company import render_company as page  # the company page lives in company.py
+    return page(con, cid)

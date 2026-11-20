@@ -152,6 +152,18 @@ def make_handler(port: int):
                 finally:
                     con.close()
                 return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
+            if path == "/pay" or re.fullmatch(r"/companies/\d+/pay", path):
+                from . import company
+                con = db.connect()
+                try:
+                    page = (company.render_pay_index(con) if path == "/pay"
+                            else company.render_company_pay(con, int(path.split("/")[2])))
+                finally:
+                    con.close()
+                if page is None:
+                    return self._send(404, b"<h1>No such company</h1><p><a href='/companies'>All companies</a></p>",
+                                      "text/html; charset=utf-8")
+                return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
             if path in ("/jobs", "/companies") or re.fullmatch(r"/companies/\d+", path):
                 params = {k: v[0] for k, v in parse_qs(urlparse(self.path).query).items()}
                 con = db.connect()
@@ -323,6 +335,21 @@ def make_handler(port: int):
                     return self._json(400, {"error": "id must be a number"})
                 except RuntimeError as err:
                     return self._json(503, {"error": str(err)})
+                finally:
+                    con.close()
+
+            if path == "/api/reach":  # find who hires for one role and draft an email; never sends
+                from . import reach
+                cfg = self._cfg()
+                con = db.connect()
+                try:
+                    return self._json(200, reach.reach(con, cfg, str(body.get("key", ""))))
+                except KeyError:
+                    return self._json(404, {"error": "That role is no longer in Lavoro."})
+                except reach.ReachError as err:
+                    return self._json(409, {"error": str(err)})
+                except Exception as err:  # network or Claude trouble: say so plainly, keep the server up
+                    return self._json(500, {"error": f"The lookup did not finish: {err}"})
                 finally:
                     con.close()
 
