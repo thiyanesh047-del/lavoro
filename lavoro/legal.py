@@ -185,10 +185,11 @@ def render() -> str:
 STANDALONE = """<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Lavoro · Terms and privacy</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600&display=swap">
 <meta name="description" content="Terms of use and privacy notice for Lavoro, the open-source job-search assistant that runs on your own computer.">
 <style>
 :root{--ink:#141414;--ink-2:#3d3d3d;--mute:#6b6b6b;--line:#e8e4de;--canvas:#fbfaf8;--rose:#e11d48;
-  --serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+  --serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;--sans:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif}
 @media (prefers-color-scheme:dark){:root{--ink:#f4f2ee;--ink-2:#cfcac2;--mute:#9a958d;--line:#2e2b27;--canvas:#141311}
   .legal .toc a{background:#1d1b18!important}.legal code{background:rgba(255,255,255,.08)!important}}
 *{box-sizing:border-box}

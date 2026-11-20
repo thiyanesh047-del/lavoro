@@ -60,6 +60,40 @@ def money(cur: str, v: float) -> str:
     return f"{sym}{txt}" if sym else f"{cur} {txt}"
 
 
+def _nice_step(span: float) -> float:
+    raw = span / 5
+    mag = 10 ** (len(str(int(raw))) - 1)
+    return next(m * mag for m in (1, 2, 2.5, 5, 10) if m * mag >= raw)
+
+
+def _pay_svg(cur: str, ranges: list[tuple[float, float]], lo: float, hi: float) -> str:
+    """One thin line per role's pay range, sorted by midpoint, over a shaded band for the typical range."""
+    rows = sorted(ranges, key=lambda p: (p[0] + p[1]) / 2)
+    if len(rows) > 80:  # keep the chart readable: an even sample
+        rows = [rows[round(i * (len(rows) - 1) / 79)] for i in range(80)]
+    step = _nice_step(max(y for _, y in rows) - min(x for x, _ in rows) or 1)
+    axis_lo = step * int(min(x for x, _ in rows) // step)
+    axis_hi = step * -int(-max(y for _, y in rows) // step)
+    w, top, gap = 640, 10, max(3.5, min(8.0, 240 / len(rows)))
+    plot_h = top + len(rows) * gap
+    x = lambda v: 32 + (v - axis_lo) / (axis_hi - axis_lo) * (w - 64)  # room for the first and last axis label
+    out = [f'<svg viewBox="0 0 {w} {plot_h + 30:.0f}" role="img" aria-label="Pay ranges of {len(ranges)} roles in {cur}; '
+           f'typical range {money(cur, lo)} to {money(cur, hi)}">',
+           f'<rect x="{x(lo):.1f}" y="2" width="{max(2, x(hi) - x(lo)):.1f}" height="{plot_h:.0f}" rx="8" fill="#fff1f3"/>']
+    for v in (lo, hi):
+        out.append(f'<line x1="{x(v):.1f}" x2="{x(v):.1f}" y1="2" y2="{plot_h + 2:.0f}" stroke="#e11d48" stroke-width="1.5" stroke-dasharray="3 3"/>')
+    r = 2.6 if gap >= 6 else 1.8
+    for i, (a, b) in enumerate(rows):
+        y = top + i * gap
+        out.append(f'<line x1="{x(a):.1f}" x2="{x(b):.1f}" y1="{y:.1f}" y2="{y:.1f}" stroke="#bdb7ad" stroke-width="{min(2.5, gap * .45):.1f}" stroke-linecap="round"/>'
+                   f'<circle cx="{x(a):.1f}" cy="{y:.1f}" r="{r}" fill="#8f897f"/><circle cx="{x(b):.1f}" cy="{y:.1f}" r="{r}" fill="#8f897f"/>')
+    v = axis_lo
+    while v <= axis_hi + 1:
+        out.append(f'<text x="{x(v):.1f}" y="{plot_h + 24:.0f}" text-anchor="middle">{money(cur, v)}</text>')
+        v += step
+    return "".join(out) + "</svg>"
+
+
 # ---------------------------------------------------------------- skills and offers
 SKILLS = [
     ("Figma", r"\bfigma\b"), ("Prototyping", r"\bprototyp"), ("User research", r"user research|usability test|user interview"),
@@ -130,31 +164,35 @@ def _match(con, role: str):
 CSS = r"""
 .sec{margin-top:40px}
 .sec h2{margin:0 0 4px}
-.payline{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
-.payline .big{font:400 clamp(40px,6vw,58px)/1 var(--serif);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.payline .per{color:var(--mute);font-size:15px}
-.pad{padding:22px 24px}
-.note2{margin:10px 0 0;color:var(--ink-2);font-size:14px;max-width:66ch}
-.bars{display:grid;gap:2px}
-.brow{position:relative;display:grid;grid-template-columns:160px 1fr 52px;align-items:center;gap:14px;padding:7px 6px;border-radius:8px}
-.brow:hover{background:#faf9f6}
-.brow .lbl{font-size:14px;color:var(--ink)}
-.brow .track{display:block;height:10px;border-radius:999px;background:#f1efea;overflow:hidden}
-.brow .fill{display:block;height:100%;border-radius:0 4px 4px 0;background:#e11d48}
-.brow .pct{text-align:right;font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
-.brow[data-tip]:hover::after{content:attr(data-tip);position:absolute;right:66px;top:-30px;z-index:3;white-space:nowrap;
-  background:var(--ink);color:#fff;font:500 12.5px/1 var(--sans);padding:7px 10px;border-radius:8px;
-  box-shadow:0 8px 20px -8px rgba(0,0,0,.4);pointer-events:none}
-.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.tile{padding:18px 20px}
-.tile .v{font:400 40px/1 var(--serif);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.tile .k{margin-top:8px;font-size:14px;color:var(--ink-2)}
-.tile .s{margin-top:4px;font-size:12.5px;color:var(--mute);font-variant-numeric:tabular-nums}
-.cos{display:flex;flex-wrap:wrap;gap:8px}
-.cochip{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border-radius:999px;background:#fff;
-  box-shadow:0 0 0 1px var(--line) inset;text-decoration:none;font:500 14px var(--sans)}
-.cochip span{color:var(--mute);font-size:12.5px;font-variant-numeric:tabular-nums}
-a.cochip:hover{box-shadow:0 0 0 1px rgba(225,29,72,.4) inset}
+.back{display:inline-flex;align-items:center;gap:6px;font:500 13.5px var(--sans);color:var(--ink-2);text-decoration:none;margin:0 0 10px}
+.back:hover{color:var(--ink)}
+.facts4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-radius:18px;background:#fff;box-shadow:0 0 0 1px var(--line) inset}
+.facts4>div{padding:20px 22px;min-width:0}.facts4>div+div{border-left:1px solid var(--line)}
+.facts4 b{display:block;font:400 34px/1 var(--serif);letter-spacing:-.02em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.facts4 span{display:block;margin-top:8px;font-size:13.5px;color:var(--mute)}
+.rgrid{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:20px;margin-top:20px;align-items:start}
+.panel{background:#fff;border-radius:18px;box-shadow:0 0 0 1px var(--line) inset;padding:22px 24px}
+.panel+.panel{margin-top:20px}
+.panel h2{font:600 15px/1.3 var(--sans);letter-spacing:0;margin:0}
+.panel .ps{margin:3px 0 16px;font-size:13px;color:var(--mute)}
+.panel .none{margin:0;font-size:14px;color:var(--ink-2)}
+.paychart svg{display:block;width:100%;height:auto}
+.paychart text{font:500 11.5px var(--sans);fill:#6b6b6b;font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:6px 18px;margin-top:8px;font-size:12.5px;color:var(--ink-2)}
+.legend .band{display:inline-block;width:14px;height:10px;border-radius:3px;background:var(--rose-wash);box-shadow:0 0 0 1.5px var(--rose) inset;margin-right:7px;vertical-align:-1px}
+.legend .one{display:inline-block;width:18px;height:2.5px;border-radius:2px;background:#bdb7ad;margin-right:7px;vertical-align:3px}
+.sks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 28px}
+.sk .top{display:flex;justify-content:space-between;gap:10px;font-size:14px}
+.sk .top b{font-weight:600;font-variant-numeric:tabular-nums}
+.meter{display:flex;gap:5px;margin-top:7px}
+.meter i{flex:1;height:8px;border-radius:3px;background:#efece7}.meter i.on{background:var(--ink)}
+.terms,.colist{list-style:none;margin:0;padding:0}
+.terms li{display:flex;align-items:baseline;gap:12px;padding:10px 0;border-top:1px solid var(--line);font-size:14px;color:var(--ink-2)}
+.terms li:first-child,.colist li:first-child{border-top:0;padding-top:0}
+.terms b{flex:none;min-width:48px;font:400 24px/1 var(--serif);color:var(--ink);font-variant-numeric:tabular-nums}
+.colist li{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px}
+.colist a{text-decoration:none}.colist a:hover{text-decoration:underline}
+.colist span{color:var(--mute);font-variant-numeric:tabular-nums}
 .more-link{display:inline-block;margin-top:12px;font-weight:600;font-size:14.5px}
 .rcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .rcard{display:block;padding:16px 18px;text-decoration:none;transition:transform .2s var(--ease),box-shadow .2s}
@@ -162,11 +200,13 @@ a.cochip:hover{box-shadow:0 0 0 1px rgba(225,29,72,.4) inset}
 .rcard .t{font:400 24px/1.1 var(--serif);letter-spacing:-.01em}
 .rcard .c{margin-top:6px;font-size:13px;color:var(--mute);font-variant-numeric:tabular-nums}
 .rcard.mine{box-shadow:0 0 0 1px rgba(225,29,72,.35) inset}
-@media (max-width:980px){.rcards{grid-template-columns:repeat(2,minmax(0,1fr))}.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:980px){.rcards{grid-template-columns:repeat(2,minmax(0,1fr))}.rgrid{grid-template-columns:1fr}
+  .facts4{grid-template-columns:repeat(2,minmax(0,1fr))}.facts4>div:nth-child(3){border-left:0}
+  .facts4>div:nth-child(n+3){border-top:1px solid var(--line)}}
 @media (max-width:640px){
-  .brow{grid-template-columns:110px 1fr 44px;gap:10px}
   .rcards{grid-template-columns:1fr}
-  .brow[data-tip]:hover::after{right:auto;left:0}
+  .sks{grid-template-columns:1fr}
+  .facts4 b{font-size:28px}
 }
 """
 
@@ -188,28 +228,32 @@ def render_role(con, slug: str) -> str:
         return _roles_page(f"Lavoro · {name}", hero, body)
 
     companies = Counter((r["cid"], r["company"]) for r in rows)
-    hero = (f'<h1>{e(name)}</h1><p class="count"><b>{n:,}</b> open role{"s" if n != 1 else ""} at <b>{len(companies):,}</b> '
-            f'compan{"ies" if len(companies) != 1 else "y"}, from the job boards Lavoro reads. Updated every run.</p>')
+    hero = (f'<a class="back" href="/roles">← All roles</a><h1>{e(name)}</h1>'
+            '<p class="count">From the open roles in your Lavoro database, refreshed every run.</p>')
 
-    # pay
+    # pay: every listed yearly range in the commonest currency
     by_cur: dict[str, list[tuple[float, float]]] = {}
     for r in rows:
         p = parse_pay(r["salary"])
         if p:
             by_cur.setdefault(p[0], []).append((p[1], p[2]))
+    typical = "Not listed"
     if by_cur:
         cur, ranges = max(by_cur.items(), key=lambda kv: len(kv[1]))
         k = len(ranges)
         lo, hi = statistics.median(x for x, _ in ranges), statistics.median(y for _, y in ranges)
+        typical = f"{money(cur, lo)}–{money(cur, hi)}"
         other = sum(len(v) for c, v in by_cur.items() if c != cur)
-        pay = (f'<div class="card pad"><div class="payline"><span class="big">{money(cur, lo)}–{money(cur, hi)}</span>'
-               f'<span class="per">a year</span></div>'
-               f'<p class="note2">The median range across the {k} role{"s" if k != 1 else ""} that list pay in {cur}'
-               f'{f", out of {n:,} open" if n > k else ""}.'
-               f'{f" {other} more list pay in other currencies." if other else ""} '
-               f'{"Few roles list pay, so treat this as a rough guide." if k < 5 else ""}</p></div>')
+        note = (f'Each line is one role that lists a yearly range in {cur} ({k} of {n:,}).'
+                + (f' {other} more list pay in other currencies.' if other else '')
+                + (' Few roles list pay, so read this as a rough guide.' if k < 5 else ''))
+        pay = (f'<section class="panel"><h2>Pay ranges</h2><p class="ps">{e(note)}</p>'
+               f'<div class="paychart">{_pay_svg(cur, ranges, lo, hi)}</div>'
+               f'<div class="legend"><span><i class="band"></i>Typical range, {e(typical)}: the median low to the median high</span>'
+               f'<span><i class="one"></i>One role</span></div></section>')
     else:
-        pay = '<div class="card pad"><p class="note2" style="margin:0">None of these roles list pay yet.</p></div>'
+        cur = ""
+        pay = '<section class="panel"><h2>Pay ranges</h2><p class="ps">None of these roles list pay yet.</p></section>'
 
     # skills (only roles that have a description count)
     described = [(r, r["description"] or "") for r in rows if (r["description"] or "").strip()]
@@ -221,33 +265,40 @@ def render_role(con, slug: str) -> str:
                 skill_counts[skill] += 1
     top = [(s, c) for s, c in skill_counts.most_common(10) if nd and c / nd >= 0.03]
     if top:
-        bars = "".join(
-            f'<div class="brow" data-tip="{c} of {nd} roles"><span class="lbl">{e(s)}</span>'
-            f'<span class="track"><span class="fill" style="width:{max(2, round(100 * c / nd))}%"></span></span>'
-            f'<span class="pct">{round(100 * c / nd)}%</span></div>' for s, c in top)
-        skills = (f'<div class="card pad"><div class="bars" role="list" aria-label="Skills mentioned in the ads">{bars}</div></div>')
+        meters = "".join(
+            f'<div class="sk" title="{c} of {nd} ads"><div class="top"><span>{e(s)}</span><b>{round(100 * c / nd)}%</b></div>'
+            f'<div class="meter" aria-hidden="true">{"".join("<i class=on></i>" if i < round(10 * c / nd) else "<i></i>" for i in range(10))}</div></div>'
+            for s, c in top)
+        skills = (f'<section class="panel"><h2>Skills in demand</h2><p class="ps">How often each skill appears in the {nd:,} ads '
+                  f'with full text. Each block is 10%.</p><div class="sks">{meters}</div></section>')
     else:
-        skills = '<div class="card pad"><p class="note2" style="margin:0">Not enough ad text to count skills.</p></div>'
+        skills = '<section class="panel"><h2>Skills in demand</h2><p class="ps">Not enough ad text to count skills yet.</p></section>'
 
-    # offers
-    tiles = []
+    # the ads: equity, remote, pay shown, visas
+    terms, remote_pct = [], 0
     for label, test in OFFERS:
-        hits = sum(1 for r in rows if test(r, r["description"] or ""))
-        tiles.append(f'<div class="card tile"><div class="v">{round(100 * hits / n)}%</div><div class="k">{e(label)}</div>'
-                     f'<div class="s">{hits:,} of {n:,}</div></div>')
+        pct = round(100 * sum(1 for r in rows if test(r, r["description"] or "")) / n)
+        if label.startswith("are remote"):
+            remote_pct = pct
+        terms.append((pct, label))
+    terms_html = "".join(f'<li><b>{pct}%</b>{e(label)}</li>' for pct, label in sorted(terms, reverse=True))
 
-    cos = "".join(
-        (f'<a class="cochip" href="/companies/{cid}">{e(cname)}<span>{cnt}</span></a>' if cid else
-         f'<span class="cochip">{e(cname)}<span>{cnt}</span></span>')
-        for (cid, cname), cnt in companies.most_common(24))
+    def co_name(cid, cname):
+        return f'<a href="/companies/{cid}">{e(cname)}</a>' if cid else e(cname)
+    cos = "".join(f'<li>{co_name(cid, cname)}<span>{cnt}</span></li>' for (cid, cname), cnt in companies.most_common(10))
+
+    facts = (f'<div class="facts4"><div><b>{n:,}</b><span>open role{"s" if n != 1 else ""}</span></div>'
+             f'<div><b>{len(companies):,}</b><span>compan{"ies" if len(companies) != 1 else "y"} hiring</span></div>'
+             f'<div><b>{e(typical)}</b><span>typical yearly pay{f", {cur}" if cur else ""}</span></div>'
+             f'<div><b>{remote_pct}%</b><span>remote or hybrid</span></div></div>')
     latest = "".join(job_row(r) for r in rows[:15])
-
-    body = (f'<section class="sec" style="margin-top:0"><h2>What it pays</h2><p class="sub">Yearly, from the pay ranges companies list.</p>{pay}</section>'
-            f'<section class="sec"><h2>What these roles ask for</h2><p class="sub">Share of the {nd:,} ads with full text that mention each skill.</p>{skills}</section>'
-            f'<section class="sec"><h2>What they offer</h2><p class="sub">Across all {n:,} open roles.</p><div class="tiles">{"".join(tiles)}</div></section>'
-            f'<section class="sec"><h2>Who’s hiring</h2><p class="sub">Companies with the most open {e(role)} roles.</p><div class="cos">{cos}</div></section>'
-            f'<section class="sec"><h2>Newest roles</h2><p class="sub">The 15 most recent.</p><div class="card list">{latest}</div>'
-            f'<a class="more-link" href="/jobs?q={e(role)}">See all {n:,} in All jobs →</a></section>')
+    body = (facts
+            + f'<div class="rgrid"><div>{pay}{skills}</div><aside>'
+            + f'<section class="panel"><h2>In the ads</h2><p class="ps">Across all {n:,} roles.</p><ul class="terms">{terms_html}</ul></section>'
+            + f'<section class="panel"><h2>Hiring most</h2><p class="ps">Open {e(role)} roles per company.</p><ul class="colist">{cos}</ul></section>'
+            + '</aside></div>'
+            + f'<section class="sec"><h2>Newest roles</h2><p class="sub">The 15 most recent.</p><div class="card list">{latest}</div>'
+            + f'<a class="more-link" href="/jobs?q={e(role)}">See all {n:,} in All jobs</a></section>')
     return _roles_page(f"Lavoro · {name}", hero, body)
 
 

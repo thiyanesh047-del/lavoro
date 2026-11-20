@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import json
 import re
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 from .digest import CSS as BASE_CSS
 from .digest import JS as BASE_JS
@@ -32,6 +32,9 @@ _ENGINEERING_DESIGN = ["engineer", "ingenjör", "developer", "utvecklare", "veri
 _CAT_RULES = [
     ("tech", _ENGINEERING_DESIGN, _DESIGN_WORDS),
     ("design", _DESIGN_WORDS),
+    # Engineers on a content or growth team, and finance roles with "content" in the team name, are not Marketing.
+    ("tech", ["engineer", "developer", "scientist", "architect"], ["content", "growth", "brand", "seo", "communications"]),
+    ("operations", ["accounting", "accountant", "payroll", "legal counsel", "general counsel", "paralegal"]),
     ("product", ["product manager", "product owner", "product lead", "head of product", "product operations",
                  "product management", "product director", "vp product", "product specialist"]),
     ("marketing", ["marketing", "growth", "content", "seo", "brand", "communications", "social media", "copywriter", "pr "]),
@@ -122,6 +125,31 @@ header.hero.slim h1{font-size:clamp(44px,6.4vw,68px);max-width:none}
 .co-line{margin:6px 0 0;color:var(--ink-2);font-size:14px;line-height:1.5}
 .co-meta{margin-top:8px;color:var(--mute);font-size:12.5px}
 .co-line.hint{color:var(--mute);font-size:13.5px}
+/* company page: open roles by team */
+.mix{margin:4px 0 26px}
+.mixbar{display:flex;height:12px;border-radius:999px;overflow:hidden;gap:2px;background:#fff;box-shadow:0 0 0 1px var(--line)}
+.mixbar span{display:block;min-width:4px}
+.mixkey{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.mixkey a{display:inline-flex;align-items:center;gap:8px;height:34px;padding:0 13px;border-radius:999px;background:#fff;
+  box-shadow:0 0 0 1px var(--line) inset;text-decoration:none;font:500 14px var(--sans);color:var(--ink)}
+.mixkey a:hover{box-shadow:0 0 0 1px rgba(23,23,23,.35) inset}
+.mixkey i{width:10px;height:10px;border-radius:3px}
+.mixkey b{font-weight:500;color:var(--mute);font-variant-numeric:tabular-nums}
+.team{scroll-margin-top:84px;margin-top:30px}
+.team-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.team-head h3{display:flex;align-items:center;gap:10px;margin:0;font:400 30px/1.1 var(--serif);letter-spacing:-.015em}
+.team-head h3 i{width:12px;height:12px;border-radius:4px}
+.team-head h3 small{font:500 15px var(--sans);color:var(--mute);font-variant-numeric:tabular-nums}
+.team-head a{font:500 13.5px var(--sans);color:var(--ink-2)}
+.team-sub{margin:6px 0 12px;color:var(--ink-2);font-size:14px}
+.lead-row{display:flex;align-items:center;gap:12px;padding:12px 16px;margin-bottom:10px;border-radius:14px;background:var(--mint-wash);
+  box-shadow:0 0 0 1px var(--mint-ring) inset;font-size:14px;color:var(--mint-ink)}
+.lead-row .av{flex:none;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:#fff;font:600 12.5px var(--sans)}
+.lead-row b{color:var(--ink);font-weight:600}
+.more-roles summary{list-style:none;cursor:pointer;padding:13px 20px;font:600 14px var(--sans);color:var(--ink-2);border-top:1px solid var(--line)}
+.more-roles summary::-webkit-details-marker{display:none}
+.more-roles summary:hover{color:var(--ink);background:#fcfbf9}
+.more-roles[open] summary{display:none}
 .star{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;border:0;cursor:pointer;
   background:rgba(255,255,255,.85);box-shadow:0 0 0 1px var(--line) inset;font:600 13.5px var(--sans);color:var(--ink-2);
   backdrop-filter:blur(8px);transition:background .2s,color .2s,box-shadow .2s}
@@ -316,16 +344,34 @@ def _info(row) -> dict:
         return {}
 
 
-def hiring_summary(con, cid: int) -> str:
-    """'Hiring in Stockholm, Göteborg and 12 more places · mostly Engineering', from the company's open roles."""
+def _places(rows) -> "Counter":
+    """How many roles sit in each place, by the first part of each location ("Stockholm, Sweden" counts as Stockholm)."""
     from collections import Counter
-    rows = con.execute("SELECT location, department FROM jobs WHERE company_id=? AND status NOT IN ('closed','duplicate')",
-                       (cid,)).fetchall()
     places = Counter()
     for r in rows:
         first = re.split(r"[,/|(;]", r["location"] or "")[0].strip()
         if first and "from the ad" not in (r["location"] or "") and len(first) < 40 and not first[0].isdigit():
             places[first] += 1
+    return places
+
+
+def _place_text(places, top_n: int = 2) -> str:
+    """'Stockholm and London', 'Stockholm, London and 3 more places'."""
+    top = [p for p, _ in places.most_common(top_n)]
+    more = len(places) - len(top)
+    if not top:
+        return ""
+    if not more:
+        return " and ".join(top)
+    return f"{', '.join(top)} and {more} more place{'s' if more != 1 else ''}"
+
+
+def hiring_summary(con, cid: int) -> str:
+    """'Hiring in Stockholm, Göteborg and 12 more places · mostly Engineering', from the company's open roles."""
+    from collections import Counter
+    rows = con.execute("SELECT location, department FROM jobs WHERE company_id=? AND status NOT IN ('closed','duplicate')",
+                       (cid,)).fetchall()
+    places = _places(rows)
     depts = Counter((r["department"] or "").split(",")[0].strip() for r in rows if r["department"])
     parts = []
     if places:
@@ -434,10 +480,73 @@ def render_company(con, cid: int) -> str | None:
     hero = (f'<h1>{e(c["name"])}</h1>'
             + (f'<p class="count">{e(info["one_liner"])}</p>' if info.get("one_liner") else "")
             + (f'<div class="facts">{"".join(facts)}</div>' if facts else ""))
-    rows = [job_row(r, extra_meta=r["cat"].title(), with_company=False) for r in jobs]
-    body = (f'<section><h2>{n} open role{"s" if n != 1 else ""}</h2>'
-            f'<p class="sub">From {e(c["name"])}\'s own job board, newest first.</p>'
-            + (f'<div class="card list">{"".join(rows)}</div>' if rows else
-               '<div class="card empty-note">No open roles right now. Lavoro checks again on every run.</div>')
-            + '</section>')
+    if not jobs:
+        body = (f'<section><h2>No open roles</h2><div class="card empty-note">No open roles right now. '
+                'Lavoro checks again on every run.</div></section>')
+    else:
+        body = (f'<section><h2>{n} open role{"s" if n != 1 else ""}, by team</h2>'
+                f'<p class="sub">From {e(c["name"])}\'s own job board. Teams are grouped by the kind of work, newest roles first.</p>'
+                + _teams_html(con, c, jobs) + '</section>')
     return _page(f"Lavoro · {c['name']}", "/companies", hero, body)
+
+
+TEAM_LABEL = dict(CATEGORIES) | {"tech": "Tech", "other": "Other roles"}
+TEAM_COLOR = {"tech": "#171717", "design": "#e11d48", "product": "#9f1239", "marketing": "#fb7185", "sales": "#78716c",
+              "operations": "#a8a29e", "healthcare": "#0f766e", "other": "#d6d3d1"}
+SHOW_PER_TEAM = 5
+
+
+def _newest(rows) -> str:
+    return ago(rows[0]["posted_at"] or rows[0]["first_seen"]) if rows else ""
+
+
+def _contact_for(con, keys: list[str]):
+    """The best contact Lavoro already found for any of these roles, or None. Found, never guessed here."""
+    if not keys:
+        return None
+    rank = {"listed_in_ad": 0, "verified": 1, "published": 2, "likely": 3, "guessed": 4}
+    q = ",".join("?" * len(keys))
+    found = con.execute(f"SELECT c.*, j.title AS job_title FROM contacts c JOIN jobs j ON j.key = c.job_key "
+                        f"WHERE c.job_key IN ({q}) AND coalesce(c.name, '') <> ''", keys).fetchall()
+    return min(found, key=lambda r: rank.get(r["email_status"] or "", 9)) if found else None
+
+
+def _teams_html(con, company, jobs) -> str:
+    from collections import defaultdict
+    teams = defaultdict(list)
+    for r in jobs:
+        teams[r["cat"]].append(r)
+    order = sorted(teams, key=lambda k: (k == "other", -len(teams[k])))
+    n = len(jobs)
+
+    bar = "".join(f'<span style="flex:{len(teams[k])};background:{TEAM_COLOR[k]}" title="{e(TEAM_LABEL[k])}: {len(teams[k])}"></span>'
+                  for k in order)
+    key = "".join(f'<a href="#team-{k}"><i style="background:{TEAM_COLOR[k]}"></i>{e(TEAM_LABEL[k])}<b>{len(teams[k])}</b></a>'
+                  for k in order)
+    out = [f'<div class="mix"><div class="mixbar" role="img" aria-label="Open roles by team">{bar}</div>'
+           f'<nav class="mixkey" aria-label="Jump to a team">{key}</nav></div>']
+
+    for k in order:
+        rows = teams[k]
+        cnt = len(rows)
+        where = _place_text(_places(rows))
+        sub_line = (f'{cnt} open role{"s" if cnt != 1 else ""}' + (f' in {where}' if where else '')
+                    + f', newest {_newest(rows)}.')
+        lead = _contact_for(con, [r["key"] for r in rows])
+        lead_html = ""
+        if lead:
+            initials = "".join(w[0] for w in (lead["name"] or "?").split()[:2]).upper()
+            title = f', {e(lead["title"])}' if lead["title"] else ""
+            lead_html = (f'<div class="lead-row"><span class="av">{e(initials)}</span><span>Lavoro found <b>{e(lead["name"])}</b>{title}, '
+                         f'for {e(lead["job_title"])}.</span></div>')
+        shown = "".join(job_row(r, with_company=False) for r in rows[:SHOW_PER_TEAM])
+        rest = rows[SHOW_PER_TEAM:]
+        more = (f'<details class="more-roles"><summary>Show {len(rest)} more {e(TEAM_LABEL[k].lower() if k != "other" else "other")} '
+                f'role{"s" if len(rest) != 1 else ""}</summary>{"".join(job_row(r, with_company=False) for r in rest)}</details>'
+                if rest else "")
+        jobs_link = f'/jobs?q={quote(company["name"])}' + (f'&cat={k}' if k != "other" else "")
+        out.append(f'<section class="team" id="team-{k}"><div class="team-head"><h3><i style="background:{TEAM_COLOR[k]}"></i>'
+                   f'{e(TEAM_LABEL[k])}<small>{cnt}</small></h3>'
+                   + (f'<a href="{e(jobs_link)}">Open in All jobs</a>' if cnt > SHOW_PER_TEAM else '')
+                   + f'</div><p class="team-sub">{e(sub_line)}</p>{lead_html}<div class="card list">{shown}{more}</div></section>')
+    return "".join(out)

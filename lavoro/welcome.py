@@ -11,7 +11,7 @@ import json
 
 from .digest import CSS as BASE_CSS
 from .digest import JS as BASE_JS
-from .digest import e, head, icon, scene
+from .digest import asset, e, head, icon, scene
 
 EXTRA_ICONS = {
     "file": '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/>',
@@ -40,28 +40,59 @@ body.welcome main::before{display:none}  /* the dashboard's white lift-off layer
 .panel{display:none}.panel.on{display:block;animation:rise .7s var(--ease) both}
 @keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 
-/* 1. start */
-.start{min-height:calc(100vh - 64px);display:none;flex-direction:column;align-items:center;justify-content:center;
-  text-align:center;padding:4vh 20px 18vh}
-.start.on{display:flex}
-.start{position:relative;isolation:isolate}
-.start::before{content:"";position:absolute;z-index:-1;left:50%;top:46%;width:min(1100px,140vw);height:min(760px,95vh);
-  transform:translate(-50%,-50%);border-radius:50%;filter:blur(30px);
-  background:radial-gradient(closest-side,rgba(252,250,246,.88),rgba(252,250,246,.55) 55%,rgba(252,250,246,0))}
-.start h1{max-width:13ch;margin:0 auto;font-size:clamp(46px,7.8vw,92px)}
-.start .lede{max-width:46ch;margin:22px auto 0;font:500 17.5px/1.6 var(--sans);color:#1f1f1f;
-  text-shadow:0 1px 18px rgba(255,252,248,.9)}
-.drop{margin:34px auto 0;width:min(640px,100%);display:flex;align-items:center;gap:8px;padding:8px;border-radius:20px;
-  background:rgba(255,255,255,.94);box-shadow:0 0 0 1px rgba(255,255,255,.8) inset,0 18px 50px -18px rgba(30,40,30,.45);
-  transition:box-shadow .3s,transform .3s var(--ease)}
-.drop:focus-within{box-shadow:0 0 0 2px rgba(225,29,72,.35),0 18px 50px -18px rgba(30,40,30,.45)}
-.chipbtn{flex:none;width:46px;height:46px;border-radius:13px;border:0;display:grid;place-items:center;cursor:pointer;color:#fff;
-  transition:transform .15s}
-.chipbtn:hover{transform:translateY(-1px)}.chipbtn svg{width:20px;height:20px}
-.chipbtn.file{background:var(--rose)}.chipbtn.link{background:#1f2a24;margin-left:-4px}
-.drop input[type=text]{flex:1;min-width:0;height:46px;border:0;outline:0;background:transparent;font:500 16.5px var(--sans);
-  color:var(--ink);padding:0 6px}
-.drop input::placeholder{color:#707070}
+/* 1. start: text and the CV box on the left, an example of the result on the right */
+body.welcome:has(#p-start.on) .scene{display:none}  /* the valley lives inside the example frame on this panel */
+.start{display:none;position:relative;max-width:1200px;margin:0 auto;padding:6vh 40px 10vh;
+  grid-template-columns:minmax(0,1fr) minmax(0,540px);gap:clamp(32px,5vw,72px);align-items:center;min-height:calc(100vh - 64px)}
+.start.on{display:grid}
+.start h1{max-width:11ch;font-size:clamp(48px,6.2vw,84px);text-shadow:none}
+.start .lede{max-width:40ch;margin:20px 0 0;font:400 18px/1.55 var(--sans);color:var(--ink-2)}
+.startbox{margin-top:34px;max-width:520px;padding:10px;border-radius:22px;background:#fff;
+  box-shadow:0 0 0 1px var(--line) inset,0 22px 44px -30px rgba(40,30,20,.4)}
+.pickzone{width:100%;display:flex;align-items:center;gap:16px;padding:20px;border-radius:15px;cursor:pointer;text-align:left;
+  border:1.5px dashed #e7c3cb;background:var(--rose-wash);color:var(--ink);font:inherit;transition:border-color .2s,background .2s}
+.pickzone:hover{border-color:var(--rose);background:#ffe9ee}
+.pickzone .ic{flex:none;width:46px;height:46px;border-radius:12px;background:#fff;color:var(--rose);display:grid;place-items:center;
+  box-shadow:0 0 0 1px #f6d2da inset}
+.pickzone .ic svg{width:20px;height:20px}
+.pickzone b{display:block;font-size:16px;font-weight:600}
+.pickzone small{display:block;color:var(--mute);font-size:13.5px}
+.pickzone .pick-cta{margin-left:auto;font-weight:600;font-size:14px;color:var(--rose-ink);text-decoration:underline;text-underline-offset:3px}
+.or{display:flex;align-items:center;gap:12px;margin:10px 8px;color:var(--mute);font-size:12.5px}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+.linkrow{display:flex;gap:8px}
+.linkrow input{flex:1;min-width:0;height:50px;border:0;border-radius:13px;background:var(--inset);padding:0 16px;
+  font:400 16px var(--sans);color:var(--ink);outline:0;transition:box-shadow .2s}
+.linkrow input:focus{box-shadow:0 0 0 2px rgba(225,29,72,.35)}
+.linkrow input::placeholder{color:#6b6b6b}
+.start .status-line,.start .err{margin-left:0;max-width:520px;text-align:left;text-shadow:none}
+.preview{position:relative;height:min(700px,78vh);border-radius:30px;overflow:hidden;
+  background:#dfe3dc center/cover no-repeat;box-shadow:0 30px 60px -40px rgba(40,30,20,.55)}
+.preview::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(251,250,248,.12),rgba(251,250,248,0) 40%,rgba(30,25,20,.14))}
+.preview .tagx{position:absolute;z-index:2;right:16px;top:14px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.88);
+  font:600 11.5px/1 var(--sans);color:var(--ink-2)}
+.ex{position:absolute;z-index:1;border-radius:18px;padding:16px 18px;background:rgba(255,255,255,.95);
+  box-shadow:0 20px 40px -24px rgba(30,25,20,.5)}
+.ex1{left:28px;right:90px;top:54px}
+.ex1 .row{display:flex;justify-content:space-between;gap:12px}
+.ex1 .t{font-weight:600;font-size:15px}.ex1 .m{color:var(--mute);font-size:13px}
+.ex1 .fit{font:400 30px/1 var(--serif);text-align:right}.ex1 .fit small{display:block;margin-top:4px;font:500 11px var(--sans);color:var(--mute)}
+.ex1 .tags{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.ex1 .tags span{height:24px;padding:0 9px;border-radius:999px;font:600 11.5px/24px var(--sans);background:var(--inset);color:var(--ink-2)}
+.ex1 .tags .new{background:var(--mint-wash);color:var(--mint-ink)}
+.ex2{left:80px;right:40px;top:212px;display:flex;align-items:center;gap:12px}
+.ex2 .av{flex:none;width:40px;height:40px;border-radius:50%;background:#f1e7dc;color:#7a5a3a;display:grid;place-items:center}
+.ex2 .av svg{width:18px;height:18px}
+.ex2 b{display:block;font-size:14.5px}.ex2 small{color:var(--mute);font-size:12.5px}
+.ex2 .ok{margin-left:auto;flex:none;font:600 11.5px var(--sans);color:var(--mint-ink);background:var(--mint-wash);border-radius:999px;padding:4px 9px}
+.ex3{left:40px;right:40px;bottom:36px}
+.ex3 .h{display:flex;align-items:center;gap:8px;color:var(--mute);font-size:12.5px;margin-bottom:8px}
+.ex3 .h svg{width:15px;height:15px}
+.ex3 .s{font-weight:600;font-size:14.5px;margin-bottom:6px}
+.ex3 p{margin:0 0 4px;font-size:13.5px;line-height:1.55;color:var(--ink-2)}
+.ex3 .ln{height:9px;border-radius:5px;background:#eeebe6;margin:7px 0}
+.ex3 .foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:12px;color:var(--mute)}
+.ex3 .foot b{font:600 12.5px var(--sans);background:var(--ink);color:#fff;border-radius:9px;padding:7px 12px}
 .go-btn{flex:none;min-height:50px;padding:0 22px;border:0;border-radius:14px;background:var(--rose);color:#fff;cursor:pointer;
   font:700 16px/1 var(--sans);display:inline-flex;align-items:center;gap:10px;box-shadow:0 10px 24px -6px var(--rose-glow);
   transition:background .2s,box-shadow .2s}
@@ -70,7 +101,8 @@ body.welcome main::before{display:none}  /* the dashboard's white lift-off layer
 .go-btn .spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;
   animation:spin .9s linear infinite;display:none}
 .go-btn.busy .spin{display:inline-block}.go-btn.busy svg{display:none}
-.hint{margin:14px auto 0;max-width:56ch;font-size:13.5px;color:#2b2b2b;text-shadow:0 1px 12px rgba(255,252,248,.95)}
+.go-btn.ink{background:var(--ink);box-shadow:none;border-radius:13px}.go-btn.ink:hover{background:#000}
+.hint{margin:16px 0 0;max-width:52ch;font-size:13.5px;color:var(--mute)}
 .hint b{font-weight:600}
 .err{margin:12px auto 0;max-width:60ch;display:none;padding:10px 14px;border-radius:12px;background:var(--rose-wash);
   color:var(--rose-ink);font-size:14px;box-shadow:0 0 0 1px rgba(253,164,175,.9) inset;text-align:left}
@@ -190,11 +222,11 @@ body.welcome main::before{display:none}  /* the dashboard's white lift-off layer
 .tl-foot p{margin:0;font-size:13.5px;color:var(--mute);flex:1 1 240px}
 .note{margin-top:18px;font-size:13.5px;color:var(--mute)}
 
+@media (max-width:980px){.start.on{display:block;min-height:0}.preview{display:none}}
 @media (max-width:640px){
-  .start{padding:2vh 16px 12vh}
-  .drop{flex-wrap:wrap;padding:8px}
-  .drop input[type=text]{flex:1 1 60%;font-size:16px}
-  .chipbtn.link{display:none}
+  .start{padding:4vh 16px 10vh}
+  .pickzone{padding:16px}.pickzone .pick-cta{display:none}
+  .linkrow{flex-wrap:wrap}
   .go-btn{width:100%;justify-content:center}
   .sheet{margin:3vh 12px 8vh;padding:22px}
   .sheet h2{font-size:36px}
@@ -214,7 +246,6 @@ JS = r"""
 const $=s=>document.querySelector(s);
 const panels={start:$('#p-start'),you:$('#p-you'),go:$('#p-go')};
 function show(name){Object.values(panels).forEach(p=>p.classList.remove('on'));panels[name].classList.add('on');scrollTo({top:0,behavior:'smooth'})}
-if(matchMedia('(max-width: 640px)').matches) $('#source').placeholder='Link, or drop your CV';
 const err=$('#err'), go=$('#go'), input=$('#source'), fileIn=$('#file'), statusEl=$('#status');
 function fail(msg){err.textContent=msg;err.classList.add('on');go.disabled=false;go.classList.remove('busy');statusEl.textContent=''}
 function busy(steps){err.classList.remove('on');go.disabled=true;go.classList.add('busy');let i=0;statusEl.textContent=steps[0];
@@ -238,7 +269,6 @@ async function useLink(url){
   try{fill(await post('/api/profile/link',{url}),'your site')}catch(e){fail(e.message)}
 }
 $('#pick').addEventListener('click',()=>fileIn.click());
-$('#paste').addEventListener('click',()=>{input.value='';input.placeholder='https://your-portfolio.com';input.focus()});
 fileIn.addEventListener('change',()=>useFile(fileIn.files[0]));
 $('#startform').addEventListener('submit',ev=>{ev.preventDefault();const v=input.value.trim();
   if(fileIn.files[0]&&v===fileIn.files[0].name) return useFile(fileIn.files[0]); useLink(v)});
@@ -398,20 +428,33 @@ def render(cfg) -> str:
 
 <main>
 <section id="p-start" class="panel start on" aria-labelledby="h-start">
-  <h1 id="h-start">Find the role, and <span class="em">who to write to.</span></h1>
-  <p class="lede">Drop your CV. Lavoro finds roles at companies hiring now and drafts a short email to the person
-  who leads the team. You read it, you send it.</p>
-  <form id="startform" class="drop" autocomplete="off">
-    <button class="chipbtn file" id="pick" type="button" aria-label="Choose your CV file">{ic("file")}</button>
-    <button class="chipbtn link" id="paste" type="button" aria-label="Paste a portfolio link instead">{ic("link")}</button>
-    <input id="source" type="text" placeholder="Portfolio link, or drop your CV" aria-label="Portfolio link or CV">
+<div class="intro">
+  <h1 id="h-start">Roles worth writing to.</h1>
+  <p class="lede">Lavoro finds them each morning, names who hires, and drafts the email. You send it.</p>
+  <form id="startform" class="startbox" autocomplete="off">
+    <button class="pickzone" id="pick" type="button"><span class="ic">{ic("file")}</span>
+      <span><b>Drop your CV here</b><small>PDF, Word or text</small></span><span class="pick-cta">Choose file</span></button>
     <input id="file" type="file" accept=".pdf,.docx,.txt,.md" hidden>
-    <button class="go-btn" id="go" type="submit"><span class="spin"></span>Get started{ic("arrow")}</button>
+    <div class="or">or use a link</div>
+    <div class="linkrow"><input id="source" type="text" placeholder="Your portfolio or website" aria-label="Portfolio or website link">
+      <button class="go-btn ink" id="go" type="submit"><span class="spin"></span>Start</button></div>
   </form>
   <div class="status-line" id="status" role="status" aria-live="polite"></div>
   <div class="err" id="err" role="alert"></div>
-  <p class="hint">PDF, Word or text. On LinkedIn? Choose <b>More → Save to PDF</b> on your profile and drop that file.
-  Everything stays on this computer.</p>
+  <p class="hint">On LinkedIn? Save your profile as a PDF and drop it here. Everything stays on this computer.</p>
+</div>
+<div class="preview" role="img" aria-label="Example of a result: a matched role, the person who hires for it, and a draft email"
+  style="background-image:url('{asset("valley-tall.webp")}')">
+  <span class="tagx">Example</span>
+  <div class="ex ex1"><div class="row"><div><div class="t">Senior Product Designer</div><div class="m">Example Studio, Stockholm, hybrid</div></div>
+    <div class="fit">8<small>fit</small></div></div>
+    <div class="tags"><span class="new">Posted today</span><span>Design systems</span><span>Figma</span></div></div>
+  <div class="ex ex2"><span class="av">{ic("user")}</span><div><b>Head of Design</b><small>Leads the team. Email found on the company site.</small></div><span class="ok">Verified</span></div>
+  <div class="ex ex3"><div class="h">{icon("mail")}Draft, not sent</div><div class="s">Your design systems role</div>
+    <p>Hi Alex, I saw the Senior Product Designer opening and wanted to write to you directly.</p>
+    <div class="ln" style="width:92%"></div><div class="ln" style="width:76%"></div><div class="ln" style="width:58%"></div>
+    <div class="foot"><span>You read it, you send it</span><b>Open in your email</b></div></div>
+</div>
 </section>
 
 <section id="p-you" class="panel" aria-labelledby="hello"><div class="sheet">

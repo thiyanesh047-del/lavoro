@@ -5,7 +5,7 @@
   - served by `python -m lavoro serve`, where buttons save straight to the database and "Find new jobs" runs the pipeline.
 
 Look: a misty mountain valley behind everything that drifts slower than the page (parallax) and dissolves into a
-soft white haze as you scroll; Instrument Serif headlines, Inter text, warm white cards, one rose action colour.
+soft white haze as you scroll; Soria headlines (Instrument Serif for missing glyphs), Schibsted Grotesk text, warm white cards, one rose action colour.
 """
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ from .config import output_dir
 
 STATIC = Path(__file__).resolve().parent / "static"
 FONTS = ("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1"
-         "&family=Inter:wght@400;500;600;700&display=swap")
+         "&family=Schibsted+Grotesk:wght@400;500;600;700&display=swap")
 
 CSS = r"""
 /* Soria by Bydani (see static/soria-NOTICE.txt). Missing glyphs (å, dashes, ·) fall back to Instrument Serif. */
@@ -31,14 +31,14 @@ CSS = r"""
   --mint:#10b981; --mint-wash:#d1fae5; --mint-ink:#065f46; --mint-ring:rgba(110,231,183,.8);
   --amber-wash:#fef3c7; --amber-ink:#92400e; --amber-ring:rgba(252,211,77,.9);
   --serif:"Soria","Instrument Serif",Georgia,serif;
-  --sans:Inter,"Inter Fallback",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --sans:"Schibsted Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
   --ease:cubic-bezier(.16,1,.3,1);
   color-scheme:light;
 }
 *{box-sizing:border-box}
 html{background:var(--canvas);scrollbar-color:#d6d3cd transparent;scrollbar-width:thin;overflow-x:clip}
 body{margin:0;color:var(--ink);font:400 15px/1.6 var(--sans);-webkit-font-smoothing:antialiased;overflow-wrap:anywhere;
-  font-feature-settings:"cv11","ss01";background:transparent;min-height:100vh;display:flex;flex-direction:column}
+  background:transparent;min-height:100vh;display:flex;flex-direction:column}
 main{flex:1 0 auto;padding-bottom:64px}
 ::selection{background:#ffe4e8;color:var(--ink)}
 :focus-visible{outline:2px solid var(--rose);outline-offset:3px;border-radius:8px}
