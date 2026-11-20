@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none">
+  <title>Verge Labs favicon</title>
+  <rect width="256" height="256" rx="60" fill="#172554"></rect>
+  <g transform="translate(38 76.57) scale(1.2857)">
+    <path d="M81.1111 40L92.6667 20L115.778 60L104.222 80L81.1111 40Z" fill="#A78BFA"></path>
+    <path d="M11.7778 0H34.8889L46.4444 20L34.8889 40L11.7778 0Z" fill="#DDD6FE"></path>
+    <path d="M92.6666 20H69.5555L34.8888 80H58L92.6666 20Z" fill="#7C3AED"></path>
+    <path d="M115.778 60L92.6666 20H69.5555L57.9999 3.05176e-05H104.222L138.889 60H115.778Z" fill="#DDD6FE"></path>
+    <path d="M104.222 80L115.778 60H138.889L127.333 80H104.222Z" fill="#7C3AED"></path>
+    <path d="M11.7778 6.61918e-06L34.8889 40L58 1.02077e-05L69.5555 20L34.8889 80L0.222193 20L11.7778 6.61918e-06Z" fill="#A78BFA"></path>
+  </g>
+</svg>

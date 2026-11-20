@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Sirona Medical">
+  <!--
+    Sirona aperture mark — the site favicon.
+
+    Both brand variants are vendored at public/images/brand/favicon-{black,white}.{svg,png}
+    (byte-identical copies of GTM Brain/Design/Favicon). This file carries the same
+    paths with BOTH fills, switched by scheme, rather than shipping two icons:
+    the `media` attribute on <link rel="icon"> is unevenly supported, and a browser
+    that ignores it could pick white-on-white and show nothing. A CSS rule inside
+    the SVG degrades safely instead — no media-query support means the declared
+    black fill wins, i.e. exactly the asset as supplied.
+
+    Black is the default. White swaps in on dark schemes because a pure-black mark
+    is effectively invisible against Chrome/Firefox's dark tab strip.
+    To make it black everywhere, delete the @media line below.
+    favicon.ico is the same mark in black (ICO has no media queries).
+  -->
+  <style>
+    .m { fill: #000; fill-rule: evenodd; }
+    @media (prefers-color-scheme: dark) { .m { fill: #fff; } }
+  </style>
+  <path class="m" d="M24.35,5.05C22.63,2.11,19.48,.27,16.01,.27,10.68,.27,6.35,4.61,6.35,9.94c0,3.47,1.84,6.62,4.78,8.34-.26-.94-.4-1.91-.4-2.9,0-5.91,4.81-10.72,10.72-10.72,.99,0,1.96,.13,2.9,.4Z"/>
+  <path class="m" d="M31.71,15.98c0-5.33-4.34-9.66-9.66-9.66-3.47,0-6.62,1.84-8.34,4.78,.94-.26,1.91-.4,2.9-.4,5.91,0,10.72,4.81,10.72,10.72,0,.99-.13,1.96-.4,2.9,2.94-1.72,4.78-4.87,4.78-8.34Z"/>
+  <path class="m" d="M16.01,31.68c5.33,0,9.66-4.34,9.66-9.66,0-3.47-1.84-6.62-4.78-8.34,.26,.94,.4,1.91,.4,2.9,0,5.91-4.81,10.72-10.72,10.72-.99,0-1.96-.13-2.9-.4,1.72,2.94,4.87,4.78,8.34,4.78Z"/>
+  <path class="m" d="M.3,15.98c0,5.33,4.34,9.66,9.66,9.66,3.47,0,6.62-1.84,8.34-4.78-.94,.26-1.91,.4-2.9,.4-5.91,0-10.72-4.81-10.72-10.72,0-.99,.13-1.96,.4-2.9C2.14,9.35,.3,12.51,.3,15.98Z"/>
+</svg>

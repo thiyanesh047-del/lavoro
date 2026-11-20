@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-7 0 58 58" width="58" height="58">
+<!-- Favicon, added 21 Aug 2026: the site had no icon at all and /favicon.ico
+     404'd on every page. These are the three mark paths lifted verbatim from
+     public/assets/logo-ink.svg - same coordinates, same violet - with the
+     wordmark path dropped and the viewBox squared by 7 units either side.
+     Placed as vector, never redrawn (design system rule 10). -->
+<path d="M2.52632 42C1.13107 42 0 40.8689 0 39.4737L0 9.47368C0 4.24151 4.24151 1.43051e-06 9.47368 1.43051e-06V1.43051e-06C10.8689 1.43051e-06 12 1.13107 12 2.52632L12 32.5263C12 37.7585 7.75849 42 2.52632 42V42Z" fill="#593DF3"></path>
+<path d="M18.5263 42C17.1311 42 16 40.8689 16 39.4737L16 25.4737C16 20.2415 20.2415 16 25.4737 16V16C26.8689 16 28 17.1311 28 18.5263V32.5263C28 37.7585 23.7585 42 18.5263 42V42Z" fill="#593DF3"></path>
+<path d="M34.5263 58C33.1311 58 32 56.8689 32 55.4737L32 25.4737C32 20.2415 36.2415 16 41.4737 16V16C42.8689 16 44 17.1311 44 18.5263V48.5263C44 53.7585 39.7585 58 34.5263 58V58Z" fill="#593DF3"></path>
+</svg>

@@ -1,0 +1,19 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Marathon mark in the brand black (#0E0E0E, the site's body ink) on a
+       transparent ground, so the tab bar's own colour shows through.
+
+       Geometry is the official `S` (small-size) cut, measured off the ink of
+       Logo-S-Black_WM.png: outer radius 318.5, ring centreline 295, stroke 47,
+       dot 53.5. The outer edge is held at 22.25 of 48 — with no tile behind it
+       the mark can use nearly the whole box — but the stroke is opened up from
+       the official 14.8% weight to 4.28 and thickens inward, so the footprint
+       stays put while the ring reads at ~1.4px instead of going hairline in a
+       16px tab bar.
+
+       This is the one place the mark is still drawn rather than cropped from
+       the PNG: the SVG icon slot needs vector, and the icon is mark-only so
+       there is no wordmark to reproduce. The header and footer use the real
+       artwork via /marathon-lockup.png. -->
+  <circle cx="24" cy="24" r="20.11" fill="none" stroke="#0E0E0E" stroke-width="4.28"/>
+  <circle cx="24" cy="24" r="3.74" fill="#0E0E0E"/>
+</svg>

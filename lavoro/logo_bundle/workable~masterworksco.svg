@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <style>
+    @media (prefers-color-scheme: dark) {
+      .back { fill: #fafcfe }
+      .front { fill: #000 }
+    }
+  </style>
+  <path class="back" fill="#000" d="M-1e-7 0v24H24V0Z"/>
+  <path class="front" fill="#fafcfe" d="M5.73 5.621h2.83l3.4 10.758L15.42 5.62h2.691l1 12.758h-1.82l-.72-11.268-3.61 11.268H10.84L7.28 7.05l-.63 11.328H4.96L5.73 5.62Z"/>
+</svg>

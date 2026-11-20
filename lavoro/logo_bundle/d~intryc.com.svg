@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10.563 -2.55 27.2 27.2" width="32" height="32">
+  <!-- The "i" lifted straight out of the Intryc wordmark: red dot + black stem,
+       framed square with a little breathing room for the browser tab. The stem
+       flips to off-white in dark UI so the mark never disappears into the tab. -->
+  <style>
+    .stem { fill: #09090B }
+    @media (prefers-color-scheme: dark) { .stem { fill: #FDFDFD } }
+  </style>
+  <path class="stem" d="M4.94136 22.1H1.13274V8.35857C1.55136 8.50479 2.21075 8.68349 3.03432 8.68349C3.86061 8.68349 4.52001 8.50479 4.94136 8.35857C4.94136 12.9399 4.94136 17.5186 4.94136 22.1Z"/>
+  <path fill="#F74941" d="M6.0741 3.038C6.0741 4.68427 4.78267 5.94875 3.05894 5.94875C1.29143 5.94875 0 4.68156 0 2.99468C0 1.26448 1.29143 0 3.05894 0C4.82371 0 6.0741 1.26448 6.0741 3.038Z"/>
+</svg>

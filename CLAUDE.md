@@ -2,7 +2,7 @@
 
 Lavoro is a job-search assistant that runs on the user's own computer. Each run it does four things:
 
-1. Pulls new roles from company job boards: Greenhouse, Lever, Ashby, Workable, Recruitee, Teamtailor, SmartRecruiters, Workday, SAP SuccessFactors, and Sweden's Platsbanken, plus a Claude web search, a weekly check for companies that just raised money, and a bundled list of about 6,800 startups that are hiring (`lavoro/lists/startups.csv`).
+1. Pulls new roles from company job boards: Greenhouse, Lever, Ashby, Workable, Recruitee, Teamtailor, SmartRecruiters, Workday, SAP SuccessFactors, and Sweden's Platsbanken, plus a Claude web search, a weekly check for companies that just raised money, and a bundled list of about 7,000 companies that are hiring (`lavoro/lists/startups.csv`, logos in `lavoro/logo_bundle/`).
 2. Scores each role against the user's `profile.md`.
 3. Finds the person who leads hiring for each good match.
 4. Drafts a short email to that person.

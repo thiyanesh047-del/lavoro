@@ -1,0 +1,15 @@
+<svg width="42" height="74" viewBox="0 0 42 74" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="FDO stacked (white bg) - MAIN LOGO">
+<g id="Group 4">
+<mask id="mask0_2_145" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="0" y="0" width="42" height="74">
+<path id="Clip 2" fill-rule="evenodd" clip-rule="evenodd" d="M0 0.212494H41.9029V73.987H0V0.212494Z" fill="white"/>
+</mask>
+<g mask="url(#mask0_2_145)">
+<path id="Fill 1" fill-rule="evenodd" clip-rule="evenodd" d="M30.9032 0.212494H0V24.0429H30.7134C36.8982 24.0429 41.9029 29.0703 41.9029 35.2835V11.4492C41.9029 5.29945 36.9998 0.314623 30.9032 0.212494Z" fill="#B61B7A"/>
+<path id="Fill 3" fill-rule="evenodd" clip-rule="evenodd" d="M30.7134 24.0429H18.1815V74H41.9029V35.2835C41.9029 29.0703 36.8982 24.0429 30.7134 24.0429Z" fill="#51C0DC"/>
+</g>
+</g>
+<path id="Fill 5" fill-rule="evenodd" clip-rule="evenodd" d="M42 40C42 33.4941 36.9365 28.2293 30.6791 28.2293H18V23H30.6791C36.9365 23 42 28.2641 42 34.7698V40Z" fill="#3AA9D4"/>
+<path id="Fill 6" fill-rule="evenodd" clip-rule="evenodd" d="M30.0984 0H7C12.7932 0 17.4818 4.73785 17.4901 10.5956V23.7821H29.9103C36.0399 23.7821 41 28.7994 41 35V11.214C41 5.07666 36.1407 0.101922 30.0984 0Z" fill="#7D3E85"/>
+</g>
+</svg>

@@ -301,9 +301,106 @@ def _best_icon(domain: str, home_url: str, page: str):
     return best if best and best[2] >= 16 else None
 
 
+# ---------------------------------------------------------------- logos that ship with Lavoro
+# lavoro/logo_bundle/ holds the logos already found, so a new install shows them at once. A file is named after the
+# company's job board ("greenhouse~stripe.png"), or its domain ("d~spotify.com.svg") when it has no board.
+# misses.txt lists the companies whose site has no logo, so a new install doesn't look again.
+BUNDLE = Path(__file__).parent / "logo_bundle"
+BUNDLE_PX = 128   # bigger icons are scaled down to this; tiles show at most about 56 px, so this stays sharp at 2x
+
+
+def bundle_key(c) -> str | None:
+    if c["ats"] and c["ats"] != "none" and c["slug"]:
+        key = f"{c['ats']}~{c['slug']}"
+    elif c["domain"]:
+        key = f"d~{c['domain']}"
+    else:
+        return None
+    return re.sub(r"[^a-z0-9._~-]", "_", key.lower())
+
+
+_bundle_index: dict[str, Path] | None = None
+_bundle_misses: set[str] | None = None
+
+
+def _bundled(key: str) -> tuple[Path | None, bool]:
+    """(the bundled logo for this key, whether the bundle knows it has none)."""
+    global _bundle_index, _bundle_misses
+    if _bundle_index is None:
+        _bundle_index = {p.stem: p for p in BUNDLE.glob("*") if p.suffix[1:] in EXTS} if BUNDLE.exists() else {}
+        m = BUNDLE / "misses.txt"
+        _bundle_misses = set(m.read_text(encoding="utf-8").split()) if m.exists() else set()
+    return _bundle_index.get(key), key in _bundle_misses
+
+
+def _from_bundle(c) -> Path | None | bool:
+    """Copy the shipped logo for this company into data/logos/. Returns its file, False when the bundle knows
+    the company has none (the miss is remembered), or None when the bundle doesn't know it."""
+    key = bundle_key(c)
+    if not key:
+        return None
+    src, missing = _bundled(key)
+    if src:
+        out = DIR / f"{c['id']}{src.suffix}"
+        out.write_bytes(src.read_bytes())
+        (DIR / f"{c['id']}.site").write_text("bundled", encoding="utf-8")
+        return out
+    if missing:
+        (DIR / f"{c['id']}.miss").write_text("bundled", encoding="utf-8")
+        return False
+    return None
+
+
+def _shrink(data: bytes, kind: str) -> tuple[bytes, str]:
+    """A raster icon as WebP, at most BUNDLE_PX on its longest side (smaller ones keep their size). SVG stays."""
+    if kind == "svg":
+        return data, "svg"
+    from io import BytesIO
+    from PIL import Image
+    im = Image.open(BytesIO(data))
+    if im.width * im.height > 20_000_000:  # not an icon; the install fetches its own
+        raise ValueError("image too large")
+    if kind == "ico" and hasattr(im, "ico"):  # the largest picture in the icon
+        im.size = max(im.ico.sizes(), key=lambda s: s[0] * s[1])
+    im = im.convert("RGBA")
+    im.thumbnail((BUNDLE_PX, BUNDLE_PX), Image.LANCZOS)
+    buf = BytesIO()
+    im.save(buf, "WEBP", quality=90, method=4)
+    return buf.getvalue(), "webp"
+
+
+def build_bundle(con) -> tuple[int, int, int]:
+    """Copy the logos in data/logos/ into lavoro/logo_bundle/, keyed so other installs can find them.
+    Returns (logos written, misses listed, bytes)."""
+    import shutil
+    if BUNDLE.exists():
+        shutil.rmtree(BUNDLE)
+    BUNDLE.mkdir()
+    misses, written, size = set(), set(), 0
+    for c in con.execute("SELECT id, name, domain, ats, slug FROM companies").fetchall():
+        key = bundle_key(c)
+        if not key or key in written:
+            continue
+        f = path(c["id"])
+        if f is not None:
+            try:
+                data, kind = _shrink(f.read_bytes(), f.suffix[1:])
+            except Exception:  # noqa: BLE001  a file Pillow can't read: leave it out, the install fetches it
+                continue
+            out = BUNDLE / f"{key}.{kind}"
+            out.write_bytes(data)
+            written.add(key)
+            size += len(data)
+        elif (DIR / f"{c['id']}.miss").exists():
+            misses.add(key)
+    (BUNDLE / "misses.txt").write_text("\n".join(sorted(misses - written)) + "\n", encoding="utf-8")
+    return len(written), len(misses - written), size
+
+
 # ---------------------------------------------------------------- fetch and save
-def fetch(con, cid: int, force: bool = False) -> Path | None:
-    """Find and save this company's logo. Returns its file, or None (and remembers the miss)."""
+def fetch(con, cid: int, force: bool = False, bundle: bool = True) -> Path | None:
+    """Find and save this company's logo: the one shipped with Lavoro if there is one (unless bundle=False),
+    else from the company's site. Returns its file, or None (and remembers the miss)."""
     if not force and state(cid) != "unknown":
         return path(cid)
     with _lock:
@@ -315,6 +412,10 @@ def fetch(con, cid: int, force: bool = False) -> Path | None:
         if c is None:
             return None
         DIR.mkdir(parents=True, exist_ok=True)
+        if bundle:
+            shipped = _from_bundle(c)
+            if shipped is not None:
+                return shipped or None
         site = find_site(con, c)
         got = _best_icon(*site) if site else None
         for ext in EXTS:
@@ -344,7 +445,7 @@ def fetch_all(con, everyone: bool = False, force: bool = False, workers: int = 8
     def one(cid):
         c2 = db.connect()  # one connection per thread
         try:
-            return fetch(c2, cid, force=True) is not None
+            return fetch(c2, cid, force=True, bundle=not force) is not None
         finally:
             c2.close()
 

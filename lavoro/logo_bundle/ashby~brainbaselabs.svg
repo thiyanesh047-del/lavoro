@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-47 -33 183 183">
+  <!--
+    The NavbarLogo mark as supplied for the favicon: a solid black tile with
+    the silhouette knocked out in white and the diamond painted back in black.
+    Rebuilt as vectors from the same path the navbar uses, not a downscaled
+    bitmap, so it stays crisp at 16px. The tile-to-mark ratio matches the
+    supplied art (mark ~49% of the tile).
+  -->
+  <rect x="-47" y="-33" width="183" height="183" fill="#000000" />
+  <path
+    fill="#ffffff"
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="M45.639 102.986C45.2605 102.995 44.8808 103 44.5 103C19.9233 103 0 83.0767 0 58.5C0 58.4178 0.000222898 58.3356 0.000668122 58.2535C0.000225212 58.2473 0 58.2409 0 58.2346V20.675C0 16.9885 2.9885 14 6.675 14H44.2346C44.2409 14 44.2473 14.0002 44.2535 14.0007C44.3356 14.0002 44.4178 14 44.5 14C69.0767 14 89 33.9233 89 58.5C89 58.8808 88.9952 59.2605 88.9857 59.639C88.9951 59.703 89 59.7684 89 59.835V96.325C89 100.011 86.0115 103 82.325 103H45.835C45.7684 103 45.703 102.995 45.639 102.986ZM45.435 38.1952L64.7867 57.547C65.3081 58.0683 65.3081 58.9136 64.7867 59.435L45.435 78.7867C44.9136 79.308 44.0684 79.308 43.547 78.7867L24.1953 59.435C23.6739 58.9136 23.6739 58.0683 24.1953 57.547L43.547 38.1952C44.0684 37.6739 44.9136 37.6739 45.435 38.1952Z"
+  />
+</svg>

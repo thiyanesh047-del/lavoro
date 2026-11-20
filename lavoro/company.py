@@ -202,22 +202,25 @@ function letter(d){
 function paintWho(k,d){
   document.querySelectorAll(`[data-who="${k}"]`).forEach(w=>{
     const tr=w.querySelector('.wtrust');
-    if(!d.found){tr.className='wtrust';tr.textContent='No one found for '+d.job+'. Reload to try the next role.';return}
+    if(!d.found){tr.className='wtrust';tr.textContent='No one found for '+d.job+'.'+(d.next_key&&d.fresh?' Next: '+d.next_title+'.':d.next_key?'':' Every role on this team was tried.');return}
     w.querySelector('.eyebrow').textContent='Hires for this team';
     w.querySelector('.wname').textContent=d.name;
     const ti=w.querySelector('.wtitle');ti.textContent=d.title||'';ti.hidden=!d.title;
     tr.className='wtrust'+(OK_TRUST.includes(d.status)?' ok':d.status==='guessed'?' warn':'');tr.textContent=d.trust||'';
     const av=w.parentElement.querySelector('.av');if(av)av.textContent=initials(d.name)});
-  const go=document.querySelector(`[data-go="${k}"]`);if(go&&d.found)go.textContent=d.subject?'Show email':'See who'}
+  const go=document.querySelector(`[data-go="${k}"]`);if(!go)return;
+  if(d.found)go.textContent=d.subject?'Show email':'See who';else go.textContent=d.fresh?'Try another role':'Search again'}
 document.querySelectorAll('[data-reach]').forEach(b=>b.addEventListener('click',async()=>{
   const out=document.getElementById(b.getAttribute('aria-controls')),txt=b.querySelector('span');
   if(out.dataset.ready){out.hidden=!out.hidden;b.setAttribute('aria-expanded',String(!out.hidden));
     txt.textContent=out.hidden?(out.dataset.label||'Email'):'Hide';return}
   const label=txt.textContent;b.disabled=true;txt.textContent='Looking… up to a minute';
-  try{const r=await post('/api/reach',{key:b.dataset.reach});const d=await r.json().catch(()=>({}));
+  try{const r=await post('/api/reach',{key:b.dataset.reach,team:b.dataset.team});const d=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error(d.error||'Could not look that up.');
-    out.replaceChildren(letter(d));out.dataset.ready='1';out.dataset.label=d.found&&d.subject?'Email':label;out.hidden=false;
-    b.setAttribute('aria-expanded','true');txt.textContent='Hide';paintWho(b.dataset.team,d)}
+    out.replaceChildren(letter(d));out.hidden=false;b.setAttribute('aria-expanded','true');paintWho(b.dataset.team,d);
+    if(!d.found&&d.next_key){  // no one for this role: the next click tries the team's next role, no reload needed
+      b.dataset.reach=d.next_key;delete out.dataset.ready;txt.textContent=d.fresh?'Try another role':'Search again';return}
+    out.dataset.ready='1';out.dataset.label=d.found&&d.subject?'Email':label;txt.textContent='Hide'}
   catch(e){say(e.message==='Failed to fetch'?'Could not reach Lavoro. Is it still running?':e.message);txt.textContent=label}
   finally{b.disabled=false}}));
 // The buttons on the top cards jump to the team and open (or start) its lookup.
@@ -282,6 +285,22 @@ def _who(con, team) -> dict:
     fresh = [r for r in team if r["status"] not in ("looked_up", "no_contact")]
     target = max(fresh or team, key=lambda r: ((r["score"] or 0), r["posted_at"] or r["first_seen"] or ""))
     return {"found": False, "tried": len(tried), "fresh": bool(fresh), "key": target["key"], "next": target["title"]}
+
+
+def next_for_team(con, key: str, team: str) -> dict | None:
+    """After a lookup found no one: the role on the same team to try next, so the button moves on without a reload."""
+    row = con.execute("SELECT company_id FROM jobs WHERE key=?", (key,)).fetchone()
+    if not row or row["company_id"] is None:
+        return None
+    jobs = [r for r in con.execute(f"SELECT j.*, {CAT_SQL} AS cat FROM jobs j WHERE j.company_id = ? "
+                                   "AND j.status NOT IN ('closed','duplicate')", (row["company_id"],)).fetchall()
+            if r["cat"] == team]
+    if not jobs:
+        return None
+    w = _who(con, jobs)
+    if w["found"]:
+        return None
+    return {"next_key": w["key"], "next_title": w["next"], "tried": w["tried"], "fresh": w["fresh"]}
 
 
 def _who_lines(w: dict, k: str, n: int, with_team: bool) -> str:

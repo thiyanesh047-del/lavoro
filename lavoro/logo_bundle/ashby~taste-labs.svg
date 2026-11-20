@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none">
+	<defs>
+		<linearGradient id="tastelabs-gradient" x1="8" y1="8" x2="56" y2="56" gradientUnits="userSpaceOnUse">
+			<stop offset="0" stop-color="#6366f1" />
+			<stop offset="1" stop-color="#06b6d4" />
+		</linearGradient>
+	</defs>
+	<rect x="4" y="4" width="56" height="56" rx="14" fill="url(#tastelabs-gradient)" />
+	<path d="M18 19H46V27H36V45H28V27H18V19Z" fill="#FFFFFF" />
+</svg>

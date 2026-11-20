@@ -1,0 +1,27 @@
+<svg width="291" height="291" viewBox="-19.5 0 291 291" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    /* Light mode (default) - show dark logo */
+    .dark-path { display: block; }
+    .light-path { display: none; }
+    
+    /* Dark mode - show light logo */
+    @media (prefers-color-scheme: dark) {
+      .dark-path { display: none; }
+      .light-path { display: block; }
+    }
+  </style>
+  
+  <!-- Dark version paths -->
+  <path class="dark-path" d="M126 193.938L167.999 169.751V121.251L126 145.521V193.938Z" fill="#17171A"/>
+  <path class="dark-path" d="M126 193.938V145.521L83.9995 121.251V169.751L126 193.938Z" fill="#2D2E31"/>
+  <path class="dark-path" d="M126 96.9185L83.9995 121.251L126 145.521L167.999 121.251L126 96.9185Z" fill="#3A3B3C"/>
+  <path class="dark-path" d="M126 291L167.999 266.75L83.9995 218.251V266.75L126 291Z" fill="#1A1A1A"/>
+  <path class="dark-path" d="M126 0L252 72.7505V218.251L209.999 242.502L167.999 218.251L209.999 193.938V96.9185L126 48.504L41.9988 96.9185V242.502L0 218.251L0.0186657 72.8494L126 0Z" fill="#1A1A1A"/>
+  
+  <!-- Light version paths -->
+  <path class="light-path" d="M126 193.938L167.999 169.751V121.251L126 145.521V193.938Z" fill="#D7D7E0"/>
+  <path class="light-path" d="M126 193.938V145.521L83.9995 121.251V169.751L126 193.938Z" fill="#EFEEF2"/>
+  <path class="light-path" d="M126 96.9185L83.9995 121.251L126 145.521L167.999 121.251L126 96.9185Z" fill="#FCFCFC"/>
+  <path class="light-path" d="M126 291L167.999 266.75L83.9995 218.251V266.75L126 291Z" fill="white"/>
+  <path class="light-path" d="M126 0L252 72.7505V218.251L209.999 242.502L167.999 218.251L209.999 193.938V96.9185L126 48.504L41.9988 96.9185V242.502L0 218.251L0.0186657 72.8494L126 0Z" fill="white"/>
+</svg>

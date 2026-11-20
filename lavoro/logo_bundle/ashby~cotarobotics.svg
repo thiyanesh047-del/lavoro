@@ -1,0 +1,13 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <title>Cota Robotics</title>
+  <!-- Square icon lockup. Brand guideline: the symbol may stand alone as an
+       icon, must stay one solid colour, and must not be modified — so the
+       path below is the untouched symbol-black.svg geometry (viewBox
+       689×550), placed on a black field in the sanctioned negative
+       (white-on-dark) treatment and centred by transform only.
+       Square 1:1 is a hard Google requirement for search-result favicons. -->
+  <rect width="512" height="512" rx="96" fill="#000000"/>
+  <g transform="translate(80 115.5066) scale(0.5108853)">
+    <path d="M228.513 62.2637H93.4824C76.2747 62.2637 62.3213 76.2047 62.3213 93.3965V456.604C62.3213 473.795 76.2747 487.736 93.4824 487.736H228.513V550H93.4824C41.8524 550 0 508.186 0 456.604V93.3965C0 41.8141 41.8524 0 93.4824 0H228.513V62.2637ZM595.518 0C647.148 0 689 41.8141 689 93.3965V456.604C689 508.186 647.148 550 595.518 550H460.487V487.736H595.518C612.725 487.736 626.679 473.795 626.679 456.604V93.3965C626.679 76.2047 612.725 62.2637 595.518 62.2637H460.487V0H595.518ZM228.513 228.302C254.327 228.302 275.254 249.209 275.254 275C275.254 300.791 254.327 321.698 228.513 321.698C202.698 321.698 181.771 300.791 181.771 275C181.771 249.209 202.698 228.302 228.513 228.302ZM460.487 228.302C486.302 228.302 507.229 249.209 507.229 275C507.229 300.791 486.302 321.698 460.487 321.698C434.673 321.698 413.746 300.791 413.746 275C413.746 249.209 434.673 228.302 460.487 228.302Z" fill="#FFFFFF"/>
+  </g>
+</svg>

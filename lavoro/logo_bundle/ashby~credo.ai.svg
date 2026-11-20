@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <!-- Design 2.5 mark: the sheet stack reduced to what survives at 16px.
+       One isometric sheet in ink outline, the front edge of the sheet below,
+       and the signal lying on it. On a white tile so it holds on dark
+       browser chrome. The PNG icons draw the full stack (scripts/og-tools.mjs). -->
+  <rect width="64" height="64" rx="14" fill="#ffffff"/>
+  <path d="M6 37 L32 52 L58 37" fill="none" stroke="#0a0a0a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M32 10 L58 25 L32 40 L6 25 Z" fill="#ffffff" stroke="#0a0a0a" stroke-width="4" stroke-linejoin="round"/>
+  <ellipse cx="32" cy="25" rx="8.4" ry="4.85" fill="#ff3d00"/>
+</svg>

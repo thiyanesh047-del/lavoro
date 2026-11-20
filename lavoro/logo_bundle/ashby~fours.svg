@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="Fours">
+  <defs>
+    <clipPath id="fours-circle"><circle cx="256" cy="256" r="256"/></clipPath>
+  </defs>
+  <g clip-path="url(#fours-circle)">
+    <rect width="512" height="512" fill="#E67327"/>
+    <path fill="#F4A42B" d="M0 206 C 92 180 176 206 256 241 C 336 275 420 251 512 209 L 512 512 L 0 512 Z"/>
+  </g>
+</svg>

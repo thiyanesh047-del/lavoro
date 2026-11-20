@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Sameday">
+  <!-- Brand mark from the Sameday wordmark (the interlocking-S glyph),
+       white on the site's dark surface. -->
+  <rect width="32" height="32" rx="7" fill="hsl(0, 0%, 10%)"/>
+  <g transform="translate(9.1, 5) scale(0.61)" fill="#f7f5ee">
+    <polygon points="16.9793 0 11.2882 3.2857 11.2882 9.8572 16.9793 13.1429 22.6703 9.8572 22.6703 3.2857 16.9793 0"/>
+    <polygon points="8.438 11.498 14.1328 14.7841 5.6891 19.659 .0015 16.3688 0 9.8053 8.4437 4.9303 8.438 11.498"/>
+    <polygon points="5.6946 36.1661 11.3857 32.8804 11.3857 26.309 5.6946 23.0232 .0036 26.309 .0036 32.8804 5.6946 36.1661"/>
+    <polygon points="14.2359 24.6682 8.5412 21.3821 16.9848 16.5071 22.6724 19.7973 22.6739 26.3609 14.2302 31.2358 14.2359 24.6682"/>
+  </g>
+</svg>

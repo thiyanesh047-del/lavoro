@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="29.749892" height="39.250317" viewBox="0 0 29.749892 39.250317" role="img" aria-label="Tessellation AI">
+  <defs>
+    <linearGradient id="g1" x1="19.74962" y1="39.37529" x2="19.74962" y2="19.37523" gradientUnits="userSpaceOnUse">
+      <stop offset="0.32493702" stop-color="#1bd4b1"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="10.00005" y1="29.62491" x2="10.00005" y2="9.62478" gradientUnits="userSpaceOnUse">
+      <stop offset="0.31738034" stop-color="#1bd4b1"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="g3" x1="19.74987" y1="19.87512" x2="19.74987" y2="-0.125" gradientUnits="userSpaceOnUse">
+      <stop offset="0.31999999" stop-color="#1bd4b1"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+  </defs>
+  <path fill="url(#g3)" stroke="#000000" stroke-width="0.5" stroke-linecap="round"
+        d="m 19.7501,0.25 a 9.75,9.75 0 0 0 -9.7503,9.75031 9.75,9.75 0 0 1 9.7503,9.7498 9.75,9.75 0 0 1 9.749792,-9.7498 A 9.75,9.75 0 0 0 19.7501,0.25 Z"/>
+  <path fill="url(#g2)" stroke="#000000" stroke-width="0.5" stroke-linecap="round"
+        d="M 10.00031,9.9998 A 9.75,9.75 0 0 0 0.25,19.75011 9.75,9.75 0 0 1 10.00031,29.4999 9.75,9.75 0 0 1 19.7501,19.75011 9.75,9.75 0 0 0 10.00031,9.9998 Z"/>
+  <path fill="url(#g1)" stroke="#000000" stroke-width="0.5" stroke-linecap="round"
+        d="m 19.74989,19.75021 a 9.75,9.75 0 0 0 -9.75031,9.75031 9.75,9.75 0 0 1 9.75031,9.74979 9.75,9.75 0 0 1 9.749792,-9.74979 9.75,9.75 0 0 0 -9.749792,-9.75031 z"/>
+</svg>

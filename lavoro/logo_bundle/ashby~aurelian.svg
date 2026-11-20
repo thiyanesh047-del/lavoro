@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 61 53">
+    <style>
+        .main-color { fill: #0B2540; }
+        .accent-color { fill: #58758B; }
+
+        @media (prefers-color-scheme: dark) {
+        .main-color { fill: #ffffff !important; }
+        .accent-color { fill: #999999 !important; }
+        }
+    </style>
+
+    <path class="main-color" d="M60.84 14.07L38.64 52.68H22.02L60.84 14.07Z" />
+    <path class="main-color" d="M8.31 0L60.84 14.07L52.71 0H8.31Z" />
+    <path class="main-color" d="M22.02 52.68L8.31 0L0 14.07L22.02 52.68Z" />
+
+    <path class="accent-color" d="M44.61 30.21L49.86 11.13L60.84 14.07L44.61 30.21Z" />
+    <path class="accent-color" d="M16.17 30.21L30.42 44.34L22.02 52.68L16.17 30.21Z" />
+    <path class="accent-color" d="M11.28 11.4L29.49 5.67L8.31 0L11.28 11.4Z" />
+</svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect width="512" height="512" rx="96" fill="url(#bg)"/>
+
+  <!-- Stylised S mark built from paths (no external font dependency) -->
+  <!--
+    The S is constructed from two arcs:
+    Top arc curves right, bottom arc curves left — classic "S" skeleton.
+    Drawn as a thick stroke path.
+  -->
+  <path
+    d="
+      M 310 148
+      C 310 148 200 130 175 190
+      C 150 248 256 260 280 278
+      C 310 300 330 340 295 375
+      C 265 405 175 395 155 370
+    "
+    fill="none"
+    stroke="white"
+    stroke-width="52"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+
+  <!-- Yellow dot — nod to ".se" and Sweden's flag yellow -->
+  <circle cx="362" cy="370" r="34" fill="#fbbf24"/>
+</svg>

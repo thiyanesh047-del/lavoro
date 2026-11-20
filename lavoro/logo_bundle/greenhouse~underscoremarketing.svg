@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Official brand favicon (FQ's underscore_logo_favicon_rgb.svg drop,
+     2026-08-25): ink square, white U letterform, teal slash — artwork
+     verbatim from the Illustrator export. Replaces the placeholder
+     slash-only mark from July. favicon.ico + apple-icon.png are
+     rasterized from this same file (Safari ignores SVG favicons). -->
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 195.2 195.2">
+  <defs>
+    <style>
+      .st0 {
+        fill: #053d4b;
+      }
+
+      .st1 {
+        fill: #fff;
+      }
+
+      .st2 {
+        fill: #56a1a4;
+      }
+    </style>
+  </defs>
+  <rect class="st0" width="195.2" height="195.2"/>
+  <path class="st1" d="M83.4,132c-15.3,0-27.2-4.1-35.7-12.4-8.5-8.3-12.7-19.6-12.7-33.9V15h26v65.5c0,9.5,2.4,16.6,7.3,21.3,4.8,4.8,12.1,7.2,21.6,7.2s17.5-2.6,22.9-7.7c5.4-5.1,8.1-12.3,8.1-21.4V15h26v88.7h13.2v26.2h-27v-18.2h-8c-4.3,6.6-9.9,11.7-16.7,15.1-6.8,3.4-15.1,5.2-25.1,5.2Z"/>
+  <path class="st2" d="M26.5,180.2h116.7c9.9,0,19-26,25.4-26H52c-10.7,0-19,26-25.4,26h0Z"/>
+</svg>

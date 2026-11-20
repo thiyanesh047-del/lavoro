@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#000000"/>
+  <text x="256" y="312" font-family="Maven Pro, Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif" font-size="320" font-weight="800" text-anchor="middle" fill="#ffffff">S</text>
+  <rect x="176" y="372" width="160" height="40" rx="20" fill="#ffffff"/>
+</svg>

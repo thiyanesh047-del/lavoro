@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import csv
+from collections import Counter
 import json
 import re
 import sqlite3
@@ -149,8 +150,9 @@ LISTS_DIR = Path(__file__).parent / "lists"
 
 
 def seed_startups(con) -> int:
-    """Add the bundled list of startups that are hiring, each with its job board (lavoro/lists/startups.csv:
-    name, ats, slug). Returns how many companies are new."""
+    """Add the bundled list of companies that are hiring, each with its job board (lavoro/lists/startups.csv:
+    name, ats, slug, and when known domain and a one-line description). A company already in the list gets the
+    domain and description if it has none. Returns how many companies are new."""
     path = LISTS_DIR / "startups.csv"
     if not path.exists():
         print("The bundled startup list is missing: lavoro/lists/startups.csv")
@@ -160,17 +162,69 @@ def seed_startups(con) -> int:
         for row in csv.DictReader(f):
             if row["ats"] not in ATS_FETCHERS or not row["slug"]:
                 continue
-            if con.execute("SELECT 1 FROM companies WHERE ats=? AND slug=?", (row["ats"], row["slug"])).fetchone():
+            about, domain = (row.get("about") or "").strip(), (row.get("domain") or "").strip() or None
+            have = con.execute("SELECT id, domain, info FROM companies WHERE ats=? AND slug=?", (row["ats"], row["slug"])).fetchone()
+            if have:
+                info = json.loads(have["info"] or "{}") if have["info"] else {}
+                if about and not info.get("one_liner"):
+                    info.update(one_liner=about, one_liner_source="Lavoro's list", described=True)
+                    con.execute("UPDATE companies SET info=? WHERE id=?", (json.dumps(info, ensure_ascii=False), have["id"]))
+                if domain and not have["domain"]:
+                    con.execute("UPDATE companies SET domain=? WHERE id=? AND NOT EXISTS (SELECT 1 FROM companies WHERE domain=?)",
+                                (domain, have["id"], domain))
                 continue
             existed = con.execute("SELECT 1 FROM companies WHERE lower(name)=lower(?)", (row["name"],)).fetchone()
+            info = (json.dumps({"one_liner": about, "one_liner_source": "Lavoro's list", "described": True}, ensure_ascii=False)
+                    if about else None)
             try:
-                db.upsert_company(con, name=row["name"], ats=row["ats"], slug=row["slug"], source="startups")
+                db.upsert_company(con, name=row["name"], domain=domain, ats=row["ats"], slug=row["slug"],
+                                  source="startups", info=info)
             except sqlite3.IntegrityError:  # a same-name company already holds this board under another row
                 continue
             n += 0 if existed else 1
     con.commit()
     db.merge_duplicate_companies(con)
     return n
+
+
+GENERIC_ABOUT = re.compile(r"job board|careers? page|open positions|join our team", re.I)  # a board's blurb about itself
+
+
+def export_startups(con) -> int:
+    """Write every company with a job board in this install, with its domain and description, into
+    lavoro/lists/startups.csv (keeping the rows already there). For the maintainer: run before a release."""
+    path = LISTS_DIR / "startups.csv"
+    rows: dict[tuple[str, str], dict] = {}
+    if path.exists():
+        with path.open(encoding="utf-8", newline="") as f:
+            for r in csv.DictReader(f):
+                about = r.get("about") or ""
+                rows[(r["ats"], r["slug"])] = {"name": r["name"], "ats": r["ats"], "slug": r["slug"], "domain": r.get("domain") or "",
+                                               "about": "" if GENERIC_ABOUT.search(about) else about}
+    from .logos import DIR as LOGO_DIR
+    for c in con.execute("SELECT id, name, ats, slug, domain, info FROM companies WHERE ats IS NOT NULL AND ats<>'none' "
+                         "AND slug IS NOT NULL").fetchall():
+        info = json.loads(c["info"] or "{}") if c["info"] else {}
+        site = LOGO_DIR / f"{c['id']}.site"  # the company's own site, found when its logo was fetched
+        found = site.read_text(encoding="utf-8").strip() if site.exists() else ""
+        found = found if re.fullmatch(r"[a-z0-9.-]+\.[a-z]{2,}", found) else ""
+        about = " ".join(str(info.get("one_liner") or "").split())[:300]
+        if GENERIC_ABOUT.search(about):
+            about = ""  # a board's own blurb about itself says nothing about the company
+        old = rows.get((c["ats"], c["slug"]), {})
+        rows[(c["ats"], c["slug"])] = {"name": c["name"] or old.get("name"), "ats": c["ats"], "slug": c["slug"],
+                                       "domain": c["domain"] or old.get("domain") or found, "about": about or old.get("about") or ""}
+    # A new install treats a domain as one company, so a domain two rows share is left out of both.
+    shared = {d for d, k in Counter(r["domain"] for r in rows.values() if r["domain"]).items() if k > 1}
+    for r in rows.values():
+        if r["domain"] in shared:
+            r["domain"] = ""
+    out = sorted(rows.values(), key=lambda r: (r["name"].lower(), r["ats"], r["slug"]))
+    with path.open("w", encoding="utf-8", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=["name", "ats", "slug", "domain", "about"], lineterminator="\n")
+        w.writeheader()
+        w.writerows(out)
+    return len(out)
 
 
 def detect_all(con, limit: int = 200) -> tuple[int, int]:

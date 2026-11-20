@@ -1,0 +1,16 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" color="#fff">
+    <rect width="100%" height="100%" fill="#0b1e3a"/>
+    <defs>
+        <mask id="rimward-logo-light-cutout">
+            <rect width="100%" height="100%" fill="#fff"/>
+            <rect x="78" y="56" width="66" height="62" fill="#000"/>
+        </mask>
+    </defs>
+    <g fill="currentColor">
+        <g mask="url(#rimward-logo-light-cutout)">
+            <rect x="20" y="56" width="124" height="124" rx="14"/>
+            <rect x="78" y="20" width="98" height="98" rx="10"/>
+        </g>
+        <circle cx="111" cy="87" r="9"/>
+    </g>
+</svg>

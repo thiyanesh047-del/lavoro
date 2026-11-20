@@ -105,7 +105,7 @@ These steps go in order.
 
 | Step | Command | What it does |
 |---|---|---|
-| Company list | `seed-yc`, `seed-startups`, `add`, `probe` | Seeds Y Combinator companies that are hiring and a bundled list of about 6,800 startups that are hiring, each with its job board (`lavoro/lists/startups.csv`), plus any company you add by website or name. Turn the bundled list off with `search.startups.enabled: false`. |
+| Company list | `seed-yc`, `seed-startups`, `add`, `probe` | Seeds Y Combinator companies that are hiring and a bundled list of about 7,000 companies that are hiring, each with its job board, website and a one-line description (`lavoro/lists/startups.csv`), with their logos (`lavoro/logo_bundle/`), plus any company you add by website or name. Turn the bundled list off with `search.startups.enabled: false`. |
 | Board detection | `detect` | Finds each company's job board: Greenhouse, Lever, Ashby, Workable, Recruitee, Teamtailor, SmartRecruiters, Workday or SAP SuccessFactors. Workday and SuccessFactors boards (used by big employers such as Volvo) cannot be guessed from a name: add them by pasting the careers link. |
 | Fetch | `fetch` | Reads every open role from each board's public feed. No key needed. It also reads the latest Hacker News "Who is hiring?" thread (posts often include the founder's email), [Arbeitnow](https://www.arbeitnow.com)'s free European job API, and, in Sweden, Platsbanken through the JobTech API. |
 | Web search | `web` | Claude searches the web for postings the boards miss: company career pages, local job sites and LinkedIn job listings. It reads search results only and never opens a LinkedIn page. Old LinkedIn ads, which search engines keep listing, are dropped. One Claude call per run. |
@@ -213,6 +213,20 @@ Changing the region sends jobs the old region skipped back through the filter on
 3. Set `email.gmail_drafts: true` in `config.yaml`.
 
 It uses the `gmail.compose` scope: Lavoro can create drafts but cannot read your inbox.
+
+## For maintainers: updating the shipped company list and logos
+
+New installs start with the companies, descriptions and logos in `lavoro/lists/startups.csv` and `lavoro/logo_bundle/`, so their pages look full from the first run. To refresh them from your own install, after a run has found new companies and fetched their logos:
+
+```bash
+pip install pillow
+```
+
+```bash
+python -m lavoro bundle
+```
+
+Then commit both folders. Only company facts are shipped: never contacts, drafts, scores or anything from `profile.md`.
 
 ## Privacy and good manners
 

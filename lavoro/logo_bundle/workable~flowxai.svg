@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- FlowX app icon: the official wordmark X glyph + amber bar (paths from the
+       site's header wordmark), matching og-default.png -->
+  <rect width="100" height="100" rx="18" fill="#0A0B0D"/>
+  <g transform="translate(-269.44 16.72) scale(3.181)">
+    <path d="M 102.63 6.505 L 107.652 12.262 L 103.028 12.262 L 100.294 9.062 L 97.559 12.262 L 93.191 12.262 L 98.198 6.569 L 93.319 1.065 L 97.957 1.065 L 100.549 4.087 L 103.142 1.065 L 107.524 1.065 Z" fill="#F4F5F3"/>
+    <path d="M 107.652 16.06 L 93.191 16.06 L 93.191 19.858 L 107.652 19.858 Z" fill="#FCB813"/>
+  </g>
+</svg>

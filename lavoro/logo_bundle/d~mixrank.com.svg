@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 97.84 100" role="img" aria-label="MixRank">
+  <!--
+    The MixRank arrow-X mark, full-bleed and flat.
+
+    Same geometry as src/components/ui/MixRankMark.tsx, which was traced from
+    the brand asset (wp-content/themes/mixrank/images/site_icon_red.webp) at
+    IoU 0.995. This file is the source the raster icons in this directory were
+    generated from; keep the path in sync with the component if it ever moves.
+
+    Two deliberate differences from the component:
+
+    · Flat #d9281a, not the diagonal gradient. The gradient is imperceptible
+      below ~64px, which is every size that matters here, and a flat fill keeps
+      the file to one path with no <defs>.
+    · No padding. A favicon is read at 16px, where the arrow-X's internal
+      negative space is only a pixel or two wide — inset it inside a tile and
+      the strokes blur into a blob. Measured against a tiled variant at true
+      16px on both light and dark browser chrome: full-bleed is the one that
+      still reads. Do not add a background or padding here.
+
+    #d9281a is --color-red from globals.css (the AA-corrected brand red),
+    hardcoded because a standalone SVG has no access to the site's custom
+    properties.
+  -->
+  <path fill="#d9281a" d="M0 0 37.52 49.9 18.27 75.25 18.07 52.85 4.91 52.85 4.91 99.8 51.47 99.8 51.67 86.44 32.81 86.25 48.72 65.23 75.05 99.8 97.64 99.8 60.12 49.9 79.37 24.56 79.57 46.95 92.73 46.95 92.73 0 46.17 0 46.17 13.36 64.83 13.56 48.92 34.58 22.59 0Z"/>
+</svg>

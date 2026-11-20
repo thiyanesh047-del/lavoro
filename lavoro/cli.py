@@ -281,6 +281,17 @@ def cmd_logos(con, cfg, a):
     print(f"Logos: {found} found, {missed} with none to use, {had} already done.")
 
 
+def cmd_bundle(con, cfg, a):
+    """For the maintainer: copy this install's companies (boards, domains, descriptions) and logos into the files
+    that ship with Lavoro, so a new install starts with them. Needs Pillow (pip install pillow) for the logos."""
+    from . import logos
+    n = discover.export_startups(con)
+    print(f"Company list: {n:,} companies with a job board in lavoro/lists/startups.csv.")
+    got, misses, size = logos.build_bundle(con)
+    print(f"Logos: {got:,} ({size / 1e6:.1f} MB) and {misses:,} companies with none, in lavoro/logo_bundle/.")
+    print("Commit both so new installs get them.")
+
+
 def cmd_mark(con, cfg, a):
     cur = con.execute("UPDATE jobs SET status=? WHERE key=?", (a.status, a.key))
     con.commit()
@@ -326,7 +337,7 @@ def main(argv=None):
     ap.add_argument("--config", help="path to config.yaml")
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("seed-yc", help="add YC companies that are hiring in your regions")
-    sub.add_parser("seed-startups", help="add the bundled list of about 6,800 startups that are hiring, with their job boards")
+    sub.add_parser("seed-startups", help="add the bundled list of about 7,000 companies that are hiring, with their job boards")
     p = sub.add_parser("detect", help="find the job board (ATS) for companies without one"); p.add_argument("--limit", type=int, default=200)
     p = sub.add_parser("add", help="add a company by name, website or careers URL"); p.add_argument("url", metavar="name_or_url"); p.add_argument("--name")
     p = sub.add_parser("probe", help="guess a company's job board from its name"); p.add_argument("names", nargs="+"); p.add_argument("--domain")
@@ -358,6 +369,7 @@ def main(argv=None):
     p = sub.add_parser("logos", help="fetch company logos from each company's own website")
     p.add_argument("--all", action="store_true", help="every company, not only the ones hiring")
     p.add_argument("--force", action="store_true", help="look again, even for logos already saved")
+    sub.add_parser("bundle", help="maintainer: ship this install's companies, descriptions and logos with Lavoro")
     p = sub.add_parser("mark", help="set a job's status"); p.add_argument("key"); p.add_argument("status", choices=["sent", "skipped", "drafted", "scored"])
     sub.add_parser("stats", help="counts")
     p = sub.add_parser("notify", help="show the desktop notification now"); p.add_argument("--test", action="store_true")

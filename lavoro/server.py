@@ -369,7 +369,11 @@ def make_handler(port: int):
                 cfg = self._cfg()
                 con = db.connect()
                 try:
-                    return self._json(200, reach.reach(con, cfg, str(body.get("key", ""))))
+                    out = reach.reach(con, cfg, str(body.get("key", "")))
+                    if not out.get("found") and body.get("team"):  # tell the page which role to try next
+                        from .company import next_for_team
+                        out |= next_for_team(con, str(body["key"]), str(body["team"])) or {}
+                    return self._json(200, out)
                 except KeyError:
                     return self._json(404, {"error": "That role is no longer in Lavoro."})
                 except reach.ReachError as err:

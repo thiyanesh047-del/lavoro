@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+  <!--
+    The Artie mark (public/home-v2/artie-mark-green.svg) redrawn for the tab: every edge sits on the 16px grid so it
+    renders crisp at 16, 32 and 48, and the eye is 1.4px, centred where the mark's is (the mark's own eye is 1.2px at 16; 2px read as too big). The ear, eye, legs and trunk are cut out
+    (evenodd), so the tab colour shows through in light and dark. src/app/apple-icon.png keeps white cutouts because
+    iOS fills transparency with black.
+  -->
+  <!-- Square corners, like the brand mark itself (no rounding). -->
+  <path fill-rule="evenodd" fill="#047454" d="M0 0H16V16H13.5L12.25 11H11V16H6V14H5V16H0Z M9 0A4 4 0 0 0 9 8Z M13.62 7.38A0.7 0.7 0 1 0 12.22 7.38A0.7 0.7 0 1 0 13.62 7.38Z"/>
+</svg>

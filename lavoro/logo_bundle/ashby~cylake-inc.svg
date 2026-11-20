@@ -1,0 +1,23 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <!-- The Cylake mark. THIS FILE IS THE SINGLE SOURCE for every icon the site
+         ships: favicon.ico, favicon-96.png, favicon-96-dark.png and
+         apple-touch-icon.png are all rasterized from these paths by
+         `npm run icons:build`. Edit here, then re-run — never edit the rasters.
+
+         The fill is set in CSS rather than on the paths so this one file can
+         answer to the browser's color scheme: ink on a light tab strip, paper
+         on a dark one. It is the only icon that adapts, which is why Seo.astro
+         scopes the .ico to sizes="32x32" — that is what stops Chrome and
+         Firefox preferring the .ico and losing the dark-mode variant. The
+         rasters bake one color each and are media-gated in the markup as a
+         fallback for engines without SVG icon support. -->
+    <style>
+        path { fill: #282F4D; }
+        @media (prefers-color-scheme: dark) {
+            path { fill: #F5ECDF; }
+        }
+    </style>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M14.6677 20.9439C15.4371 21.3383 16.2576 21.5242 17.0663 21.5254V21.5258H25.34V11.1011H19.3885L19.394 11.1091L15.7955 11.0645H11.7783V16.2161C11.7784 17.5754 12.297 18.9346 13.3334 19.9712C13.5735 20.2112 14.4363 20.9208 14.6677 20.9208V20.9439Z"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M16.9014 24.557C14.286 24.557 11.9459 23.3791 10.3823 21.525C9.13135 20.0417 8.3774 18.1253 8.3774 16.033C8.3774 15.9168 8.37984 15.8014 8.38443 15.6864V11.1013H3.03716V15.62C3.03309 15.7573 3.03108 15.8949 3.03108 16.033C3.03108 17.984 3.43389 19.8409 4.16065 21.525C4.63121 22.6151 5.2376 23.6329 5.95843 24.557H5.94541C8.50729 27.8727 12.5226 30.0077 17.0367 30.0077H27.7074V24.557H16.9014Z"/>
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M5.94524 7.44293H27.9439V1.99219H17.0365C12.5224 1.99219 8.50713 4.12723 5.94524 7.44293Z"/>
+</svg>

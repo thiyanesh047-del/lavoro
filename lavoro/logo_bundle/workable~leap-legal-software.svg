@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="b" data-name="Layer 2" viewBox="0 0 511.337 511.346" width="511.337" height="511.346"><metadata><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:dc="http://purl.org/dc/elements/1.1/"><rdf:Description><dc:creator>RealFaviconGenerator</dc:creator><dc:source>https://realfavicongenerator.net</dc:source></rdf:Description></rdf:RDF></metadata><defs>
+    <style>
+      .d {
+        fill: #112b65;
+      }
+
+      .e {
+        fill: #ff7f19;
+      }
+    </style>
+  </defs><g id="c" data-name="Layer 1">
+    <g>
+      <path class="d" d="M73.37,0h364.594c40.522,0,73.373,32.845,73.373,73.37v364.603c0,40.522-32.851,73.373-73.373,73.373H73.37c-40.525,0-73.37-32.851-73.37-73.373V73.37C0,32.845,32.845,0,73.37,0"></path>
+      <polygon class="e" points="218.676 218.28 391.199 243.958 418.377 388.763 443.632 179.548 262.086 96.879 218.676 218.28"></polygon>
+      <polygon class="e" points="218.676 218.284 205.509 255.147 49.563 414.467 261.243 316.216 297.831 246.517 218.676 218.284"></polygon>
+    </g>
+  </g></svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"
+    xmlns:svgjs="http://svgjs.com/svgjs" version="1.1" width="16px" height="16px">
+    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="16px"
+        height="16px" viewBox="0 0 16 16" version="1.1">
+        <defs>
+            <filter id="SvgjsFilter1005" filterUnits="objectBoundingBox" x="0%" y="0%" width="100%"
+                height="100%">
+                <feColorMatrix type="matrix" in="SourceGraphic"
+                    values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0" />
+            </filter>
+            <image id="SvgjsImage1004" width="16" height="16"
+                xlink:href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQkWg2AAAABmJLR0QA/wD/AP+gvaeTAAAAGUlEQVQokWP8/4eZgRTARJLqUQ2jGoaUBgBLSgIe9jddlQAAAABJRU5ErkJggg==" />
+            <mask id="SvgjsMask1003">
+                <g filter="url(#alpha)">
+                    <use xlink:href="#image7" />
+                </g>
+            </mask>
+            <clipPath id="SvgjsClipPath1002">
+                <rect x="0" y="0" width="16" height="16" />
+            </clipPath>
+            <g id="SvgjsG1001" clip-path="url(#clip1)">
+                <rect x="0" y="0" width="16" height="16"
+                    style="fill:rgb(100%,100%,100%);fill-opacity:1;stroke:none;" />
+            </g>
+        </defs>
+        <g id="SvgjsG1000">
+            <use xlink:href="#surface6" mask="url(#mask0)" />
+            <path
+                style=" stroke:none;fill-rule:evenodd;fill:rgb(17.254902%,17.254902%,17.254902%);fill-opacity:1;"
+                d="M 2.558594 5.601562 C 2.558594 7.042969 3.132812 8.425781 4.152344 9.445312 C 5.171875 10.46875 6.558594 11.039062 8 11.039062 C 9.441406 11.039062 10.828125 10.46875 11.847656 9.445312 C 12.867188 8.425781 13.441406 7.042969 13.441406 5.601562 Z M 2.558594 5.601562 " />
+        </g>
+    </svg>
+    <style>@media (prefers-color-scheme: light) { :root { filter: none; } }
+</style>
+</svg>

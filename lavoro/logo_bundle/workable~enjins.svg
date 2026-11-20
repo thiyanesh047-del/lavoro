@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="379" height="394" viewBox="0 0 379 394">
+  <style>
+    :root { color-scheme: light dark; }
+    svg { color: #0A4A39; } /* light mode */
+    @media (prefers-color-scheme: dark) {
+      svg { color: #CFF75A; } /* dark mode */
+    }
+  </style>
+  <ellipse cx="225.781" cy="36.9838" rx="28.714" ry="28.714" transform="rotate(2.23902 225.781 36.9838)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.92" cx="149.72" cy="41.0747" rx="25.8426" ry="25.8426" transform="rotate(2.23902 149.72 41.0747)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.84" cx="83.1175" cy="77.4257" rx="24.1802" ry="24.1802" transform="rotate(2.23902 83.1175 77.4257)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.76" cx="39.0077" cy="139.007" rx="22.2372" ry="22.2371" transform="rotate(2.23902 39.0077 139.007)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.68" cx="26.7885" cy="213.933" rx="20.2941" ry="20.2941" transform="rotate(2.23902 26.7885 213.933)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.6" cx="47.5107" cy="286.257" rx="18.3511" ry="18.351" transform="rotate(2.23902 47.5107 286.257)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.52" cx="97.5564" cy="343.527" rx="15.7603" ry="15.7603" transform="rotate(2.23902 97.5564 343.527)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.45" cx="167.945" cy="372.422" rx="13.8173" ry="13.8172" transform="rotate(2.23902 167.945 372.422)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.37" cx="243.29" cy="368.454" rx="11.6583" ry="11.6583" transform="rotate(2.23902 243.29 368.454)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.29" cx="309.54" cy="331.722" rx="10.363" ry="10.3629" transform="rotate(2.23902 309.54 331.722)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.21" cx="353.858" cy="270.366" rx="8.204" ry="8.20399" transform="rotate(2.23902 353.858 270.366)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.13" cx="366.284" cy="195.662" rx="5.61327" ry="5.61326" transform="rotate(2.23902 366.284 195.662)" fill="currentColor"></ellipse>
+  <ellipse opacity="0.05" cx="345.803" cy="122.698" rx="3.45432" ry="3.45431" transform="rotate(2.23902 345.803 122.698)" fill="currentColor"></ellipse>
+  <path d="M194.39 124.419C170.901 126.88 149.311 139.92 136.012 159.739C114.854 191.217 118.352 232.928 144.432 260.26C156.954 273.429 172.067 281.417 190.461 284.656C195.729 285.563 216.325 285.433 221.766 284.397C234.503 282.065 249.4 275.243 256.006 268.723C260.929 263.887 262.483 258.015 260.368 252.401C258.597 247.695 253.416 243.55 248.321 242.729C245.082 242.211 242.535 242.859 238.389 245.234C230.185 249.94 224.313 252.272 216.714 253.913C211.489 255.035 201.817 255.467 196.808 254.819C178.716 252.401 163.388 240.7 156.306 223.903L154.665 220.017L213.259 219.801C267.233 219.585 271.983 219.542 273.71 218.851C277.812 217.167 280.705 214.447 282.562 210.388C283.382 208.618 283.511 207.668 283.468 202.53C283.252 168.073 262.354 139.359 229.624 128.478C217.836 124.549 206.135 123.21 194.39 124.419ZM213.864 155.465C220.859 156.89 227.422 159.61 232.992 163.366C236.403 165.655 241.887 171.009 244.219 174.247C246.896 178.004 250.221 184.869 251.084 188.367L251.343 189.576H203.199C157.645 189.576 155.054 189.533 155.054 188.799C155.097 187.676 157.256 182.84 159.242 179.429C167.187 165.957 181.523 156.544 196.981 154.644C201.342 154.083 208.812 154.472 213.864 155.465Z" fill="currentColor"></path>
+</svg>

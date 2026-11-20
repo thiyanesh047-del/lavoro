@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-12 -13 104 104">
+  <!-- Gem hexagonal outline -->
+  <g transform="translate(-0.13,-0.28)">
+    <path d="M40,1.78L70.7,29.92,40,63.17,9.3,29.92Z" fill="none" stroke="#2b2a29" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M40,1.78L75.81,17.13l2.56,28.14L70.7,29.92Z" fill="none" stroke="#2b2a29" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M40,1.78L4.19,17.13,1.63,45.26,9.3,29.92Z" fill="none" stroke="#2b2a29" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M70.7,29.92l7.67,15.35L60.46,70.85,40,63.17Z" fill="none" stroke="#2b2a29" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M9.3,29.92L1.63,45.26,19.54,70.85,40,63.17Z" fill="none" stroke="#2b2a29" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M40,63.17l20.46,7.67L40,76,19.54,70.85Z" fill="none" stroke="#2b2a29" stroke-width="3" stroke-linejoin="round"/>
+  </g>
+  <!-- Xmark with circles -->
+  <g>
+    <line x1="50.18" y1="20.93" x2="29.72" y2="41.38" fill="none" stroke="#a855ed" stroke-width="2.5" stroke-miterlimit="10"/>
+    <line x1="50.18" y1="41.42" x2="29.72" y2="20.97" fill="none" stroke="#a855ed" stroke-width="2.5" stroke-miterlimit="10"/>
+    <circle cx="50.29" cy="21.23" r="3.77" fill="#a855ed"/>
+    <circle cx="29.83" cy="41.68" r="3.77" fill="#a855ed"/>
+    <circle cx="50.29" cy="41.68" r="3.77" fill="#a855ed"/>
+    <circle cx="29.83" cy="21.23" r="3.77" fill="#a855ed"/>
+  </g>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="398" height="398" viewBox="51.1 51 398 398" fill="none">
+<!--
+  DELIBERATELY WIDER THAN THE RASTER SET. Do not "fix" the inset to match.
+
+  This mark's bbox corners sit at ~1.09 of the inscribed-circle radius, against
+  0.766-0.777 for favicon-96x96-v2.png and 0.775-0.791 for apple-touch-icon-v2
+  .png. That is a choice, not drift: those rasters are inset because Bing,
+  Google and Slack mask favicons to a CIRCLE and clipped the previous
+  edge-to-edge mark down to a lone blue slash. This SVG is the BROWSER TAB
+  STRIP path only — Chrome/Firefox/Safari prefer a declared image/svg+xml icon
+  and paint it into a square ~16px box with no circular mask, while crawlers
+  auto-request /favicon.ico by path and never fetch this file.
+
+  A tighter, circle-safe variant was rendered alongside this one and rejected
+  on sight: at tab-strip size the inset version's "W" strokes go too thin to
+  read. The wider mark was picked knowing it is only safe on the surfaces that
+  do not mask — i.e. accepted FOR the tab strip, and explicitly NOT relied on
+  for search results, unfurls or the iOS home screen, each of which is served
+  by an inset raster instead. If this file ever starts being handed to a
+  circle-masking surface, re-render it at the 0.79 ratio; until then, leave it.
+
+  The theme swap below is safe here for the same reason: the @media query is
+  evaluated by the renderer against the surface it is actually painting on,
+  unlike a <link media> attribute, which matches the user's OS theme and put a
+  white "W" on Bing's white card. See the icon comment block in
+  src/app/layout.tsx for the full history.
+-->
+<style>@media (prefers-color-scheme: dark) { .w { fill: #fff } }</style>
+<path d="M352.88 125L287.404 375H363.72L429.195 125H352.88Z" fill="#0060DF"/>
+<path class="w" d="M271.798 275.861L293.655 192.409L276.115 125H214.153C218.456 130.829 221.316 147.851 217.081 162.082L178.079 310.355L139.989 169.272C132.54 141.491 147.002 125 147.002 125H71C71 125 81.2952 137.529 88.4311 159.154L150.407 374.986H203.299L250.527 194.656L271.798 275.847V275.861Z" fill="#181818"/>
+</svg>
