@@ -84,7 +84,7 @@ code{font:500 13px/1 ui-monospace,"Cascadia Code",Consolas,monospace;background:
   font-variant-numeric:tabular-nums;white-space:nowrap}
 .pill.quiet{background:rgba(255,255,255,.75);color:var(--ink-2);box-shadow:0 0 0 1px var(--line) inset}
 .run{border:0;cursor:pointer;background:var(--ink);color:#fff;min-height:36px;padding:0 16px;border-radius:999px;
-  font:600 13.5px/1 var(--sans);display:none;align-items:center;gap:8px;transition:background .2s}
+  font:600 13.5px/1 var(--sans);display:none;align-items:center;gap:8px;transition:background .2s;white-space:nowrap;flex:none}
 .live .run{display:inline-flex}
 .run:hover{background:#333}.run[disabled]{opacity:.7;cursor:progress}
 .run svg{width:15px;height:15px}.run.busy svg{animation:spin 1.1s linear infinite}
@@ -237,13 +237,17 @@ footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 2
   h2,details.more>summary{font-size:30px}
 }
 .bar .wrap{max-width:1080px}
-.nav{display:flex;gap:2px;margin:0 auto 0 20px}
-.nav a{padding:8px 13px;border-radius:999px;font:500 14.5px/1 var(--sans);text-decoration:none;color:var(--ink-2);white-space:nowrap;
+.nav{display:flex;gap:2px;margin:0 auto 0 14px}
+.nav a{padding:8px 10px;border-radius:999px;font:500 14.5px/1 var(--sans);text-decoration:none;color:var(--ink-2);white-space:nowrap;
   transition:background .2s,color .2s}
 .nav a:hover{background:rgba(255,255,255,.65);color:var(--ink)}
 .nav a[aria-current=page]{background:#fff;color:var(--ink);box-shadow:0 0 0 1px var(--line) inset}
-@media (max-width:900px){.bar .pill.quiet{display:none}}
-@media (max-width:640px){
+/* Seven tabs, the date, the ready count and "Find new jobs" need about the full 1080px bar: below that, drop the date first. */
+@media (max-width:1120px){.bar .pill.quiet{display:none}}
+/* then "Find new jobs" keeps its icon only (its aria-label still names it) */
+@media (max-width:1000px){.run{padding:0 11px}.run span{display:none}}
+/* below about 800px the tabs no longer fit beside the brand and buttons: give them their own scrolling row */
+@media (max-width:800px){
   .bar .wrap{flex-wrap:wrap;height:auto;padding-top:10px;padding-bottom:8px;row-gap:8px}
   .nav{order:3;width:100%;margin:0;overflow-x:auto}
 }
