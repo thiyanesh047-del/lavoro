@@ -417,6 +417,7 @@ def scene() -> str:
 
 
 
+CURRENT = ' aria-current="page"'  # outside the f-string below: Python before 3.12 cannot reuse its quote
 NAV = [("/", "Today"), ("/jobs", "All jobs"), ("/roles", "Roles"), ("/companies", "Companies"), ("/tracker", "Tracker")]
 
 
@@ -425,7 +426,7 @@ def bar(active: str | None, right: str = "") -> str:
     nav = ""
     if active is not None:
         nav = '<nav class="nav" aria-label="Main">' + "".join(
-            f'<a href="{href}"{' aria-current="page"' if href == active else ''}>{label}</a>' for href, label in NAV) + "</nav>"
+            f'<a href="{href}"{CURRENT if href == active else ""}>{label}</a>' for href, label in NAV) + "</nav>"
     brand = f'<a class="brand" href="/"><span class="mark">{icon("send")}</span><span class="wm">Lavoro</span></a>' if active is not None else         f'<span class="brand"><span class="mark">{icon("send")}</span><span class="wm">Lavoro</span></span>'
     return f'<div class="bar"><div class="wrap">{brand}{nav}<span class="bar-right">{right}</span></div></div>'
 

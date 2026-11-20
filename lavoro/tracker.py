@@ -237,6 +237,9 @@ document.querySelectorAll('[data-followed]').forEach(b=>b.addEventListener('clic
 BOOKMARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>'
 
 
+DUE_CLASS = ' class="due"'  # kept out of the f-string: Python before 3.12 allows no backslash there
+
+
 def track_btn(key: str, on: bool = False) -> str:
     """A small bookmark button. Its class is 'trackbtn' (not 'track', which the Roles page uses for its bars)."""
     tip = "In your tracker" if on else "Add to your tracker"
@@ -292,7 +295,7 @@ def render(con, cfg) -> str:
                 else e(r["title"] or ""))
         co = f'<a href="/companies/{r["company_id"]}" style="color:inherit;text-decoration:none">{e(r["company"])}</a>' if r["company_id"] else e(r["company"])
         trs.append(
-            f'<tr data-id="{r["id"]}"{" class=\"due\"" if is_due else ""}><td class="co">{co}</td><td class="ro">{role}</td>'
+            f'<tr data-id="{r["id"]}"{DUE_CLASS if is_due else ""}><td class="co">{co}</td><td class="ro">{role}</td>'
             f'<td><select data-f="stage" aria-label="Stage">{opt(r["stage"])}</select></td>'
             f'<td><input data-f="contact" value="{e(r["contact"] or "")}" placeholder="Name" aria-label="Contact"></td>'
             f'<td><input data-f="email" value="{e(r["email"] or "")}" placeholder="Email" aria-label="Email"></td>'
