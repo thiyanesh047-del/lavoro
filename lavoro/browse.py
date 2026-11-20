@@ -21,8 +21,17 @@ CATEGORIES = [("", "All"), ("design", "Design"), ("product", "Product"), ("tech"
               ("sales", "Sales"), ("operations", "Operations"), ("healthcare", "Healthcare"), ("other", "Other")]
 
 # A role's category, guessed from its title. First match wins, so the order matters.
+# The title is matched with a space on each side, so " ux " finds UX as a word but not the "ux" in Linux or Benelux.
+_DESIGN_WORDS = ["design", " ux ", " ux/", "/ux ", "/ux/", " ux-", " ux,", "(ux)", "(ux ", "(ux/", " ux)", "/ux)",
+                 " ui ", " ui/", "/ui ", " ui-", " ui,", "(ui)", "(ui ", "(ui/", " ui)", "/ui)",
+                 "user experience", "user research"]
+# Design words in an engineering or CAD title (Design Engineer, Mechanical Designer, UI Engineer): that role is Tech.
+_ENGINEERING_DESIGN = ["engineer", "ingenjör", "developer", "utvecklare", "verification", "design-for-test",
+                       "design for test", "mechanical design", "electrical design", "hardware design", "pcb", "ecad",
+                       " cad", "hvac", "rtl", "asic", "structural design", "civil", "antenna", "electronics"]
 _CAT_RULES = [
-    ("design", ["design", "ux", " ui", "ui ", "ui/", "/ui"]),
+    ("tech", _ENGINEERING_DESIGN, _DESIGN_WORDS),
+    ("design", _DESIGN_WORDS),
     ("product", ["product manager", "product owner", "product lead", "head of product", "product operations",
                  "product management", "product director", "vp product", "product specialist"]),
     ("marketing", ["marketing", "growth", "content", "seo", "brand", "communications", "social media", "copywriter", "pr "]),
@@ -37,9 +46,15 @@ _CAT_RULES = [
                     "project manager", "delivery", "implementation", "technician", "strateg", "consultant", "warehouse",
                     "logistics", "coordinator", "administrator", "assistant", "manager", "analytiker", "director"]),
 ]
+def _any_sql(words: list[str]) -> str:
+    return "(" + " OR ".join(f"(' ' || lower(j.title) || ' ') LIKE '%{w}%'" for w in words) + ")"
+
+
+# A rule is (category, words) or (category, words, also_needs): the title must contain one of the words, and, when
+# given, one of also_needs as well.
 CAT_SQL = "CASE " + " ".join(
-    "WHEN " + " OR ".join(f"(' ' || lower(j.title) || ' ') LIKE '%{w}%'" for w in words) + f" THEN '{cat}'"
-    for cat, words in _CAT_RULES) + " ELSE 'other' END"
+    f"WHEN {_any_sql(rule[1])}{' AND ' + _any_sql(rule[2]) if len(rule) > 2 else ''} THEN '{rule[0]}'"
+    for rule in _CAT_RULES) + " ELSE 'other' END"
 
 BOARD_URL = {
     "greenhouse": "https://boards.greenhouse.io/{s}", "lever": "https://jobs.lever.co/{s}",
