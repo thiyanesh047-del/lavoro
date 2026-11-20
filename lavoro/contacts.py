@@ -168,6 +168,13 @@ def check_domain(email: str | None, status: str, note: str | None) -> tuple[str 
 
 
 # ---------------------------------------------------------------- main step
+def clean_name(s: str | None) -> str:
+    """A person's name or title as Claude returned it, or "" when it holds no letters (it sometimes answers '""' or a
+    bare newline instead of an empty string)."""
+    s = (s or "").strip().strip("\"'“”‘’").strip()
+    return s if re.search(r"[^\W\d_]", s) else ""
+
+
 def _insert(con, job_key, name, title, email, status, source, url=None, note=None):
     email, status, note = check_domain(email, status, note)
     con.execute("""INSERT OR IGNORE INTO contacts(job_key, name, title, email, email_status, source, source_url, note, created_at)
@@ -216,6 +223,8 @@ def find_contacts(con, cfg, keys: list[str] | None = None) -> int:
     for r in rows:
         domain = r["domain"] or r["c_domain"] or ""
         lead = leads.get(r["key"])
+        if lead is not None:
+            lead.name, lead.title = clean_name(lead.name), clean_name(lead.title)
         if lead and lead.company_domain and (not domain or is_platform(domain)):
             domain = lead.company_domain.lower().removeprefix("www.")
         if domain and not r["domain"]:

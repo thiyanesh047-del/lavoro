@@ -129,6 +129,7 @@ document.querySelectorAll('[data-reach]').forEach(b=>b.addEventListener('click',
     out.replaceChildren(letter(d));out.dataset.ready='1';out.hidden=false;b.setAttribute('aria-expanded','true');
     b.textContent=d.found&&d.subject?'Hide email':'Hide';
     const p=b.closest('.srow').querySelector('.sperson');
+    if(!d.found){p.innerHTML='<span class="none"></span>';p.firstChild.textContent='No one found for '+d.job+'. Reload the page to try the next role.'}
     if(d.found){p.innerHTML='<b></b><span class="trust"></span><span class="for"></span>';p.querySelector('b').textContent=d.name+(d.title?', '+d.title:'');
       const t=p.querySelector('.trust');t.textContent=d.trust;t.classList.add(d.status);p.querySelector('.for').textContent='For '+d.job}}
   catch(e){say(e.message==='Failed to fetch'?'Could not reach Lavoro. Is it still running?':e.message);b.textContent=label}
@@ -172,7 +173,11 @@ def _sheet(con, company, order, teams) -> str:
     for k in order:
         team = teams[k]
         best = reach.best_for(con, [r["key"] for r in team])
-        target = max(team, key=lambda r: ((r["score"] or 0), r["posted_at"] or r["first_seen"] or ""))
+        # Look up the best-fitting role nobody has tried yet; a role already looked up with no one found is a dead end.
+        tried = [r for r in team if r["status"] in ("looked_up", "no_contact")]
+        fresh = [r for r in team if r["status"] not in ("looked_up", "no_contact")]
+        untried = fresh or team
+        target = max(untried, key=lambda r: ((r["score"] or 0), r["posted_at"] or r["first_seen"] or ""))
         out_id = f"reach-{k}"
         if best is not None:
             d = reach.as_dict(best)
@@ -181,8 +186,11 @@ def _sheet(con, company, order, teams) -> str:
             label = "Show email" if d["subject"] else "Write email"
             key = d["key"]
         else:
-            person = '<span class="none">Not looked up yet</span>'
-            label, key = "Find who hires", target["key"]
+            person = (f'<span class="none">No one found yet. {len(tried)} role{"s" if len(tried) != 1 else ""} looked up.</span>'
+                      f'<span class="for">Next try: {e(target["title"])}</span>' if tried else
+                      '<span class="none">Not looked up yet</span>')
+            label = "Find who hires" if not tried else ("Try another role" if fresh else "Search again")
+            key = target["key"]
         rows.append(f'<div class="srow"><div class="steam"><i style="background:{TEAM_COLOR[k]}"></i>{e(TEAM_LABEL[k])}'
                     f'<small>{len(team)}</small></div><div class="sperson">{person}</div>'
                     f'<button class="reachbtn{" soft" if best is not None else ""}" type="button" data-reach="{e(key)}" '

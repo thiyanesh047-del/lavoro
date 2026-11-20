@@ -33,6 +33,7 @@ def best_for(con, keys: list[str]):
             FROM contacts c JOIN jobs j ON j.key = c.job_key
             LEFT JOIN drafts d ON d.job_key = c.job_key AND d.contact_id = c.id
             WHERE c.job_key IN ({q}) AND coalesce(c.name, '') <> ''""", keys).fetchall()
+    rows = [x for x in rows if contacts.clean_name(x["name"])]  # older rows can hold '""' as a name
     if not rows:
         return None
     return min(rows, key=lambda r: (r["subject"] is None, draft.STATUS_RANK.get(r["email_status"] or "none", 5)))
