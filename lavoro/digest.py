@@ -175,7 +175,15 @@ a.row:hover{background:#fcfbf9}
 .jt{font-weight:600;font-size:15px;text-decoration:none}.jt:hover{text-decoration:underline}
 .jm{color:var(--mute);font-size:13.5px;margin-top:2px}
 .jm a{color:var(--ink-2);text-decoration:none;font-weight:500}.jm a:hover{text-decoration:underline}
-.side{text-align:right;color:var(--mute);font-size:12.5px;white-space:nowrap;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.side{display:flex;align-items:center;gap:14px;color:var(--mute);font-size:12.5px;white-space:nowrap}
+.side .sv{display:flex;flex-direction:column;align-items:flex-end;gap:4px;text-align:right;min-width:52px}
+.trackbtn{flex:none;width:36px;height:36px;border-radius:50%;border:0;display:grid;place-items:center;cursor:pointer;
+  background:#fff;color:var(--ink-2);box-shadow:0 0 0 1px var(--line) inset;transition:background .15s,color .15s,box-shadow .15s}
+.trackbtn:hover{background:#f6f5f1;color:var(--ink)}
+.trackbtn:focus-visible{outline:2px solid var(--rose);outline-offset:2px}
+.trackbtn svg{width:16px;height:16px}
+.trackbtn[aria-pressed=true]{background:var(--rose-wash);color:var(--rose);box-shadow:0 0 0 1px rgba(225,29,72,.35) inset}
+.trackbtn[aria-pressed=true] svg{fill:currentColor}
 .side .n{font:400 26px/1 var(--serif);color:var(--ink);font-variant-numeric:tabular-nums}
 .tag{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font:600 11.5px/1 var(--sans)}
 .tag.ready{background:var(--mint-wash);color:var(--mint-ink);box-shadow:0 0 0 1px var(--mint-ring) inset;text-decoration:none}
@@ -386,6 +394,11 @@ def head(title: str, live: bool = True) -> str:
 <link rel="preload" as="font" type="font/ttf" href="assets/soria.ttf" crossorigin><style>{CSS}</style>"""
 
 
+def _track_js() -> str:
+    from .tracker import TRACK_JS  # imported here: tracker imports this module
+    return TRACK_JS
+
+
 def asset(name: str) -> str:
     """URL for a static file, versioned by its modified time so browsers never keep an old copy."""
     f = STATIC / name
@@ -472,7 +485,7 @@ def render(con, cfg, live: bool = False) -> str:
 
     followed = con.execute("SELECT count(*) FROM companies WHERE starred=1").fetchone()[0]
     fresh = con.execute(
-        """SELECT j.*, c.id AS cid FROM jobs j JOIN companies c ON c.id=j.company_id
+        """SELECT j.*, c.id AS cid, (SELECT 1 FROM pipeline p WHERE p.job_key = j.key) AS tracked FROM jobs j JOIN companies c ON c.id=j.company_id
            WHERE c.starred=1 AND j.status NOT IN ('closed','duplicate') AND substr(coalesce(j.posted_at, j.first_seen), 1, 10) >= date('now','-7 day')
            ORDER BY substr(coalesce(j.posted_at, j.first_seen), 1, 10) DESC, j.first_seen DESC LIMIT 30""").fetchall()
     fresh_total = con.execute(
@@ -518,7 +531,7 @@ def render(con, cfg, live: bool = False) -> str:
 
     out.append(f"""<footer><div class="wrap"><span>Lavoro · built {datetime.now():%H:%M} from your local database</span>
 <span>Nothing here is sent until you send it.{' · <a href="/welcome">Set up again</a>' if live else ''}</span></div></footer>
-<div class="toast" role="status" aria-live="polite"></div><script>{JS}</script></body></html>""")
+<div class="toast" role="status" aria-live="polite"></div><script>{JS}{_track_js() if live else ""}</script></body></html>""")
     return "\n".join(out)
 
 

@@ -87,13 +87,49 @@ def mark_duplicates(con) -> int:
     return n
 
 
+def _title_ok(job, s: dict) -> bool:
+    title = job["title"] or ""
+    return (not s.get("titles_include") or _has_any(title, s["titles_include"])) and \
+        not _has_any(title, s.get("titles_exclude") or [])
+
+
+_LOC_PATTERNS = [
+    re.compile(r"job\s+location\s*:?\s*\n?\s*(.{3,200})", re.I),                                   # a "Job location" heading
+    re.compile(r"(?:^|\n)\s*(?:location|locations|ort|arbetsort|placering)\s*:\s*(.{3,160})", re.I),  # "Location: Lund"
+]
+
+
+def _location_from_ad(con, r):
+    """Some boards list jobs without a place (e.g. SAP's newer career sites). Read it from the ad, once, and save it.
+    Only called for titles that already pass the filter, so few pages are fetched."""
+    desc = r["description"] or fill_description(r)
+    where = ""
+    for pat in _LOC_PATTERNS:
+        m = pat.search(desc or "")
+        if m:
+            where = m.group(1)
+            break
+    if not where:  # "... Graduate Programme - UK", "... 2027 - Qingdao"
+        m = re.search(r"\s[-–|]\s*([^-–|]{2,40})$", r["title"] or "")
+        where = m.group(1) if m else ""
+    if not where:
+        return r
+    where = " ".join(where.split())[:200]
+    con.execute("UPDATE jobs SET location=?, description=coalesce(nullif(description,''), ?) WHERE key=?",
+                (f"{where} (from the ad)", desc or "", r["key"]))
+    return {**dict(r), "location": f"{where} (from the ad)", "description": desc}
+
+
 def apply_filter(con, cfg) -> int:
     mark_duplicates(con)
     s = cfg.get("search", {})
     region = regions.resolve(cfg)
-    rows = con.execute("SELECT key, source, title, company, location, remote, posted_at FROM jobs WHERE status='new'").fetchall()
+    rows = con.execute("SELECT key, source, title, company, location, remote, posted_at, url, description "
+                       "FROM jobs WHERE status='new'").fetchall()
     n = 0
     for r in rows:
+        if not (r["location"] or "").strip() and _title_ok(r, s):
+            r = _location_from_ad(con, r)
         ok = passes_filter(r, s, region)
         con.execute("UPDATE jobs SET passed_filter=?, status=? WHERE key=?",
                     (int(ok), "new" if ok else "skipped", r["key"]))

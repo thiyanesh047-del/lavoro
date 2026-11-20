@@ -60,8 +60,6 @@ def board_url(ats: str | None, slug: str | None) -> str | None:
 
 CSS = r"""
 body.browse .wrap{max-width:1040px}
-.track{height:26px;padding:0 10px;border-radius:999px;border:0;background:var(--ink);color:#fff;font:600 11.5px var(--sans);cursor:pointer;white-space:nowrap}
-.track[aria-pressed=true]{background:var(--mint-wash);color:var(--mint-ink);box-shadow:0 0 0 1px var(--mint-ring) inset}
 header.hero.slim{min-height:auto;padding:9vh 0 60px}
 header.hero.slim h1{font-size:clamp(44px,6.4vw,68px);max-width:none}
 .count{margin:16px 0 0;font:500 16px/1.6 var(--sans);color:#1f1f1f;max-width:60ch;text-shadow:0 1px 18px rgba(255,252,248,.95)}
@@ -108,6 +106,7 @@ header.hero.slim h1{font-size:clamp(44px,6.4vw,68px);max-width:none}
 .co-roles.none{color:var(--mute);font-weight:500}
 .co-line{margin:6px 0 0;color:var(--ink-2);font-size:14px;line-height:1.5}
 .co-meta{margin-top:8px;color:var(--mute);font-size:12.5px}
+.co-line.hint{color:var(--mute);font-size:13.5px}
 .star{display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:999px;border:0;cursor:pointer;
   background:rgba(255,255,255,.85);box-shadow:0 0 0 1px var(--line) inset;font:600 13.5px var(--sans);color:var(--ink-2);
   backdrop-filter:blur(8px);transition:background .2s,color .2s,box-shadow .2s}
@@ -227,12 +226,13 @@ def job_row(r, extra_meta: str = "", with_company: bool = True) -> str:
         side.append(f'<span class="n" title="Fit with your profile">{int(r["score"])}</span>')
     if r["salary"]:
         side.append(f'<span class="tag pay">{e(r["salary"].split("•")[0].strip()[:30])}</span>')
-    side.append(e(ago(r["posted_at"] or r["first_seen"])))
-    if "key" in r.keys() and r["score"] is not None:
+    side.append(f'<span class="age">{e(ago(r["posted_at"] or r["first_seen"]))}</span>')
+    mark = ""
+    if "key" in r.keys():
         from .tracker import track_btn
-        side.insert(0, track_btn(r["key"], bool(r["tracked"]) if "tracked" in r.keys() else False))
+        mark = track_btn(r["key"], bool(r["tracked"]) if "tracked" in r.keys() else False)
     return (f'<div class="jrow"><div><a class="jt" href="{e(r["url"])}" target="_blank" rel="noopener">{e(r["title"])}</a>'
-            f'<div class="jm">{meta}</div></div><div class="side">{"".join(side)}</div></div>')
+            f'<div class="jm">{meta}</div></div><div class="side"><div class="sv">{"".join(side)}</div>{mark}</div></div>')
 
 
 # ---------------------------------------------------------------- /jobs
@@ -252,7 +252,7 @@ def render_jobs(con, params: dict) -> str:
         cond.append("(j.remote = 1 OR lower(j.location) LIKE '%remote%')")
     if pay:
         cond.append("j.salary IS NOT NULL AND j.salary <> ''")
-    base = f"SELECT j.*, {CAT_SQL} AS cat FROM jobs j WHERE {' AND '.join(cond)}"
+    base = f"SELECT j.*, {CAT_SQL} AS cat, (SELECT 1 FROM pipeline p WHERE p.job_key = j.key) AS tracked FROM jobs j WHERE {' AND '.join(cond)}"
 
     counts = dict(con.execute(f"SELECT cat, count(*) FROM ({base}) GROUP BY cat", args).fetchall())
     total_all = sum(counts.values())
@@ -299,6 +299,31 @@ def _info(row) -> dict:
         return json.loads(row["info"] or "{}") or {}
     except (TypeError, ValueError):
         return {}
+
+
+def hiring_summary(con, cid: int) -> str:
+    """'Hiring in Stockholm, Göteborg and 12 more places · mostly Engineering', from the company's open roles."""
+    from collections import Counter
+    rows = con.execute("SELECT location, department FROM jobs WHERE company_id=? AND status NOT IN ('closed','duplicate')",
+                       (cid,)).fetchall()
+    places = Counter()
+    for r in rows:
+        first = re.split(r"[,/|(;]", r["location"] or "")[0].strip()
+        if first and "from the ad" not in (r["location"] or "") and len(first) < 40 and not first[0].isdigit():
+            places[first] += 1
+    depts = Counter((r["department"] or "").split(",")[0].strip() for r in rows if r["department"])
+    parts = []
+    if places:
+        top = [p for p, _ in places.most_common(2)]
+        more = len(places) - len(top)
+        parts.append("Hiring in " + " and ".join(top) if not more else
+                     f"Hiring in {', '.join(top)} and {more} more place{'s' if more != 1 else ''}" if more <= 30 else
+                     f"Hiring in {', '.join(top)} and {more} other places")
+    company = (con.execute("SELECT name FROM companies WHERE id=?", (cid,)).fetchone() or [""])[0].lower()
+    dept = depts.most_common(1)[0][0] if depts else ""
+    if dept and len(rows) > 3 and dept.lower() not in company and company.split()[0] not in dept.lower():
+        parts.append(f"mostly {dept}")
+    return " · ".join(parts)
 
 
 def render_companies(con, params: dict) -> str:
@@ -352,7 +377,11 @@ def render_companies(con, params: dict) -> str:
         ] if x)
         roles = r["roles"]
         roles_txt = (f"{roles} open role{'s' if roles != 1 else ''}") if roles else "No open roles"
-        line = f'<p class="co-line">{e(info["one_liner"])}</p>' if info.get("one_liner") else ""
+        if info.get("one_liner"):
+            line = f'<p class="co-line">{e(info["one_liner"])}</p>'
+        else:  # no description found anywhere: say where they hire instead of leaving the card empty
+            hint = hiring_summary(con, r["id"]) if roles else ""
+            line = f'<p class="co-line hint">{e(hint)}</p>' if hint else ""
         meta_html = f'<div class="co-meta">{meta}</div>' if meta else ""
         cards.append(f'<div class="co-wrap"><a class="card co" href="/companies/{r["id"]}"><div class="co-top"><span class="co-name">{e(r["name"])}</span>'
                      f'<span class="co-roles{"" if roles else " none"}">{roles_txt}</span></div>{line}{meta_html}</a>'
@@ -371,7 +400,7 @@ def render_company(con, cid: int) -> str | None:
         return None
     info = _info(c)
     jobs = con.execute(
-        f"SELECT j.*, {CAT_SQL} AS cat FROM jobs j WHERE j.company_id = ? AND j.status NOT IN ('closed','duplicate') "
+        f"SELECT j.*, {CAT_SQL} AS cat, (SELECT 1 FROM pipeline p WHERE p.job_key = j.key) AS tracked FROM jobs j WHERE j.company_id = ? AND j.status NOT IN ('closed','duplicate') "
         "ORDER BY substr(coalesce(j.posted_at, j.first_seen), 1, 10) DESC", (cid,)).fetchall()
     facts = [star_btn(c["id"], c["name"], bool(c["starred"]))]
     if c["website"] or c["domain"]:

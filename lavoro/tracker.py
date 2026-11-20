@@ -205,9 +205,6 @@ table.sheet{width:100%;border-collapse:collapse;font:500 14px var(--sans);min-wi
 .duec{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:14px 18px;border-radius:16px;background:#fffbeb;
   box-shadow:0 0 0 1px var(--amber-ring) inset}
 .duec .w{flex:1 1 280px}.duec b{display:block;font-size:15px}.duec small{color:var(--ink-2);font-size:13px}
-.rec .jrow .track{margin-left:0}
-.track{height:28px;padding:0 11px;border-radius:999px;border:0;background:var(--ink);color:#fff;font:600 12px var(--sans);cursor:pointer;white-space:nowrap}
-.track[aria-pressed=true]{background:var(--mint-wash);color:var(--mint-ink);box-shadow:0 0 0 1px var(--mint-ring) inset}
 .saved{font-size:12.5px;color:var(--mute);min-height:18px}
 @media (max-width:640px){.stagebar span{height:30px}.sec h2{font-size:30px}}
 """
@@ -237,9 +234,14 @@ document.querySelectorAll('[data-followed]').forEach(b=>b.addEventListener('clic
 """
 
 
+BOOKMARK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>'
+
+
 def track_btn(key: str, on: bool = False) -> str:
-    return (f'<button class="track" type="button" data-track="{e(key)}" aria-pressed="{"true" if on else "false"}">'
-            f'{"Tracked" if on else "Track"}</button>')
+    """A small bookmark button. Its class is 'trackbtn' (not 'track', which the Roles page uses for its bars)."""
+    tip = "In your tracker" if on else "Add to your tracker"
+    return (f'<button class="trackbtn" type="button" data-track="{e(key)}" aria-pressed="{"true" if on else "false"}" '
+            f'title="{tip}" aria-label="{tip}">{BOOKMARK}</button>')
 
 
 # Shared by every page that shows job rows: the Track button.
@@ -247,7 +249,7 @@ TRACK_JS = r"""
 document.querySelectorAll('[data-track]').forEach(b=>b.addEventListener('click',async ev=>{ev.preventDefault();ev.stopPropagation();
   if(b.getAttribute('aria-pressed')==='true'){location.href='/tracker';return}
   try{const r=await fetch('/api/pipeline',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({track:b.dataset.track})});
-    if(!r.ok)throw 0;b.setAttribute('aria-pressed','true');b.textContent='Tracked';try{say('Added to your tracker.')}catch(e){}}
+    if(!r.ok)throw 0;b.setAttribute('aria-pressed','true');b.title=b.ariaLabel='In your tracker';try{say('Added to your tracker.')}catch(e){}}
   catch(e){try{say('Could not save. Is Lavoro still running?')}catch(_){}}}));
 """
 
@@ -300,7 +302,7 @@ def render(con, cfg) -> str:
             f'<td class="op"><a href="/tracker/{r["id"]}">Kit &amp; follow-up</a></td>'
             f'<td class="x"><button class="del" type="button" aria-label="Remove row">&times;</button></td></tr>')
     if not trs:
-        trs.append('<tr class="empty"><td colspan="10">Nothing tracked yet. Press <b>Track</b> on a role below, on All jobs, '
+        trs.append('<tr class="empty"><td colspan="10">Nothing tracked yet. Press the bookmark on a role below or on All jobs, '
                    'or mark an email as sent on Today.</td></tr>')
     sheet = (f'<section class="sec"><div class="toolbar"><form class="addrow" id="addrow" autocomplete="off">'
              f'<input name="company" placeholder="Company" aria-label="Company" required>'

@@ -116,6 +116,12 @@ def cmd_funding(con, cfg, a):
           "Recently funded: checked this week already (or nothing found).")
 
 
+def cmd_describe(con, cfg, a):
+    """One line about each hiring company that has none, from its job board, website or Wikipedia."""
+    from . import describe
+    print(f"Described {describe.describe_companies(con, getattr(a, 'limit', 400) or 400)} companies.")
+
+
 def cmd_match(con, cfg, a):
     n = match.apply_filter(con, cfg)
     print(f"{n} new jobs passed the title/location filter.")
@@ -178,6 +184,7 @@ def cmd_run(con, cfg, a):
             print("\n== companies ==", flush=True)
             cmd_seed_yc(con, cfg, a)
             cmd_detect(con, cfg, a)
+            cmd_describe(con, cfg, a)
             stamp.write_text(db.now(), encoding="utf-8")
         for step in (cmd_fetch, cmd_web, cmd_funding, cmd_match, cmd_contacts, cmd_draft, cmd_digest):
             print(f"\n== {step.__name__.removeprefix('cmd_')} ==", flush=True)
@@ -258,6 +265,8 @@ def main(argv=None):
     sub.add_parser("fetch", help="pull jobs from all boards + Platsbanken")
     sub.add_parser("web", help="Claude web search for postings the job boards miss")
     p = sub.add_parser("funding", help="find companies that just raised money, and their job boards"); p.add_argument("--force", action="store_true")
+    p = sub.add_parser("describe", help="add a one-line description to hiring companies that have none")
+    p.add_argument("--limit", type=int, default=400)
     sub.add_parser("match", help="filter and score new jobs")
     sub.add_parser("contacts", help="find the hiring person for top jobs")
     sub.add_parser("draft", help="write emails for top jobs")

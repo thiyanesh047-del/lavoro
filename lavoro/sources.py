@@ -320,8 +320,11 @@ def successfactors(slug: str, company: str | None = None) -> list[dict]:
     host = slug.strip("/").split("/")[0]
     search = f"https://{host}/search/?q=&sortColumn=referencedate&sortDirection=desc&startrow="
     first = get(search + "0", timeout=30)
-    if first is None or first.status_code != 200 or 'class="data-row"' not in first.text:
+    if first is None or first.status_code != 200:
         return []
+    if 'class="data-row"' not in first.text:
+        # The newer "career site builder" (e.g. Atlas Copco) loads its jobs from a JSON endpoint instead.
+        return _sf_builder(host, company) if "j2w" in first.text or "successfactors" in first.text else []
     m = _SF_TOTAL.search(first.text)
     step = len(_SF_ROW.findall(first.text)) or 25   # sites page 20 or 25 at a time
     total = min(int(re.sub(r"\D", "", m.group(1))) if m else step, SF_MAX)
@@ -354,6 +357,62 @@ def successfactors(slug: str, company: str | None = None) -> list[dict]:
                 department=html.unescape(dept.group(1)).strip() if dept else None,
                 url=f"https://{host}{path}", salary=None, description="", posted_at=dates.get(job_id),
             ))
+    return out
+
+
+def _fix_mojibake(t: str) -> str:
+    """'TÃ©cnico' -> 'Técnico': some sites send UTF-8 text that was decoded twice."""
+    if "Ã" in t or "Â" in t:
+        try:
+            return t.encode("latin-1").decode("utf-8")
+        except (UnicodeEncodeError, UnicodeDecodeError):
+            pass
+    return t
+
+
+def _sf_builder(host: str, company: str | None) -> list[dict]:
+    """SuccessFactors career site builder: POST /services/recruiting/v1/jobs, 10 jobs a page, newest first."""
+    from concurrent.futures import ThreadPoolExecutor
+    from urllib.parse import unquote
+    from .net import post_json
+    api = f"https://{host}/services/recruiting/v1/jobs"
+
+    def page(n: int) -> dict:
+        return post_json(api, {"locale": "en_US", "pageNumber": n, "sortBy": "date", "keywords": "", "location": "",
+                               "facetFilters": {}, "brand": "", "skills": [], "categoryId": 0, "alertId": "",
+                               "rcmCandidateId": ""}, timeout=30) or {}
+    first = page(0)
+    rows = first.get("jobSearchResult") or []
+    if not rows:
+        return []
+    size = len(rows)
+    total = min(int(first.get("totalJobs") or size), SF_MAX)
+    with ThreadPoolExecutor(6) as ex:
+        pages = [first, *ex.map(page, range(1, (total + size - 1) // size))]
+    company = company or host.split(".")[-2].title()
+    out, seen = [], set()
+    for pg in pages:
+        for row in pg.get("jobSearchResult") or []:
+            j = row.get("response") or {}
+            jid = str(j.get("id") or "")
+            if not jid or jid in seen:
+                continue
+            seen.add(jid)
+            title = _fix_mojibake(html.unescape(j.get("unifiedStandardTitle") or unquote(j.get("urlTitle") or "")))
+            loc = " / ".join(re.sub(r"<[^>]+>", "", x).strip() for x in (j.get("jobLocationShort") or []) if x)
+            country = ", ".join(j.get("jobLocationCountry") or [])
+            location = _fix_mojibake(f"{loc} ({country})" if loc and country and country not in loc else (loc or country))
+            posted = None
+            try:
+                posted = datetime.strptime(j.get("unifiedStandardStart") or "", "%m/%d/%y").date().isoformat()
+            except ValueError:
+                pass
+            out.append(dict(
+                key=f"successfactors:{host}:{jid}", source="successfactors", company=company, title=title,
+                location=with_country(location), remote="remote" in f"{location} {title}".lower(),
+                department=", ".join(j.get("filter2") or []) or None,
+                url=f"https://{host}/job/{j.get('urlTitle') or 'job'}/{jid}-en_US/", salary=None, description="",
+                posted_at=posted))
     return out
 
 
@@ -392,7 +451,9 @@ def fill_description(job) -> str:
             return (html_to_text(info.get("jobDescription")) + (f"\n\n{extra}" if extra else "")).strip()
         if src == "successfactors":
             r = get(url, timeout=30)
-            return html_to_text(_span_inner(r.text, 'class="jobdescription"')) if r is not None and r.status_code == 200 else ""
+            if r is None or r.status_code != 200:
+                return ""
+            return html_to_text(_span_inner(r.text, 'class="jobdescription"') or _span_inner(r.text, 'itemprop="description"'))
         if src == "smartrecruiters":
             m = re.match(r"https://jobs\.smartrecruiters\.com/([^/]+)/([^/?#]+)", url)
             if not m:

@@ -120,7 +120,7 @@ def _match(con, role: str):
     if not words:
         return []
     cond = " AND ".join(["lower(j.title) LIKE ?"] * len(words))
-    return con.execute(f"""SELECT j.*, c.id AS cid FROM jobs j LEFT JOIN companies c ON c.id = j.company_id
+    return con.execute(f"""SELECT j.*, c.id AS cid, (SELECT 1 FROM pipeline p WHERE p.job_key = j.key) AS tracked FROM jobs j LEFT JOIN companies c ON c.id = j.company_id
                            WHERE j.status NOT IN ('closed','duplicate') AND {cond}
                            ORDER BY substr(coalesce(j.posted_at, j.first_seen), 1, 10) DESC, j.first_seen DESC""",
                        [f"%{w}%" for w in words]).fetchall()

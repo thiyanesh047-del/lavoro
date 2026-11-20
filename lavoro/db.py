@@ -79,6 +79,13 @@ CREATE TABLE IF NOT EXISTS drafts (
     PRIMARY KEY(job_key, contact_id)
 );
 
+-- The pipeline tracker (lavoro/tracker.py): the roles and companies you are going for.
+CREATE TABLE IF NOT EXISTS pipeline (
+    id INTEGER PRIMARY KEY, job_key TEXT UNIQUE, company_id INTEGER, company TEXT, title TEXT, url TEXT,
+    stage TEXT DEFAULT 'interested', contact TEXT, email TEXT, applied_at TEXT, follow_up TEXT, notes TEXT,
+    created_at TEXT, updated_at TEXT
+);
+
 -- Companies that announced a funding round recently (found by Claude web search). They tend to hire next.
 CREATE TABLE IF NOT EXISTS funding (
     id           INTEGER PRIMARY KEY,
