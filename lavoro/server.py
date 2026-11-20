@@ -12,6 +12,7 @@ POST /api/profile/upload     {"name": "cv.pdf", "data": "<base64>"}  → builds 
 POST /api/profile/link       {"url": "https://..."}                   → builds profile.md from a portfolio site
 POST /api/preferences        {"titles": [...], "locations": [...], ...} → saves search settings to config.yaml
 GET  /tracker, /tracker.csv   the pipeline tracker, and its CSV download
+GET  /profile                your profile, what Lavoro searches for, and a way to build the profile again
 POST /api/pipeline           {"track": key} | {"add": true, company, title, url} | {"id", "field", "value"} | {"id", "remove": true}
 POST /api/write              {"id", "kind": "kit" | "followup"} Claude writes an application kit or a follow-up
 POST /api/mark               {"key": ..., "status": "sent" | "skipped" | "drafted"}
@@ -208,6 +209,9 @@ def make_handler(port: int):
                 finally:
                     con.close()
                 return self._send(200, page.encode("utf-8"), "text/html; charset=utf-8")
+            if path == "/profile":  # your profile and what Lavoro searches for
+                from . import profilepage
+                return self._send(200, profilepage.render(self._cfg()).encode("utf-8"), "text/html; charset=utf-8")
             if path in ("/terms", "/privacy"):  # short links to the matching part of /legal
                 self.send_response(302)
                 self.send_header("Location", "/legal" + ("#privacy" if path == "/privacy" else ""))

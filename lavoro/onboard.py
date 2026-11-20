@@ -265,6 +265,7 @@ class Preferences(BaseModel):
     locations: list[str] = []
     remote_ok: bool = True
     in_sweden: bool = False
+    keep_queries: bool = False      # the Profile page: leave hand-tuned Platsbanken searches alone
 
 
 def _clean_list(xs: list[str], limit: int = 30) -> list[str]:
@@ -280,8 +281,8 @@ def save_preferences(p: Preferences) -> None:
     cfg_path = ROOT / "config.yaml"
     text = cfg_path.read_text(encoding="utf-8")
     places = [part for loc in p.locations for part in re.split(r"[,/()]+", str(loc))]
-    titles = _clean_list(p.titles)
-    locs = [x for x in _clean_list(places) if x != "remote" and not x.startswith("remote ")]
+    titles = _clean_list(p.titles, 100)
+    locs = [x for x in _clean_list(places, 100) if x != "remote" and not x.startswith("remote ")]
     if not titles:
         raise SetupError("Add at least one role to search for.")
     if p.linkedin and not _is_linkedin(p.linkedin):
@@ -296,7 +297,10 @@ def save_preferences(p: Preferences) -> None:
         (["search", "jobtech", "enabled"], bool(p.in_sweden)),
     ]
     if p.in_sweden:
-        edits.append((["search", "jobtech", "queries"], titles[:8]))
+        import yaml
+        current = ((yaml.safe_load(text) or {}).get("search", {}).get("jobtech") or {}).get("queries")
+        if not (p.keep_queries and current):  # setup starts them from the roles; later saves keep yours
+            edits.append((["search", "jobtech", "queries"], titles[:8]))
     for path, value in edits:
         try:
             text = set_yaml(text, path, value)
