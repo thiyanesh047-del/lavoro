@@ -139,6 +139,9 @@ def cmd_match(con, cfg, a):
     print(f"{n} new jobs passed the title/location filter.")
     print(f"  AI: {llm.describe()}")
     print(f"Scored {match.score_jobs(con, cfg)} jobs.")
+    explained = match.explain_jobs(con, cfg)
+    if explained:
+        print(f"Split the fit note into what fits and what is missing for {explained} jobs scored earlier.")
 
 
 def cmd_ai_check(con, cfg, a):

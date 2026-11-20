@@ -11,7 +11,7 @@ from urllib.parse import quote, urlencode
 from . import logos
 from .digest import CSS as BASE_CSS
 from .digest import JS as BASE_JS
-from .digest import ago, bar, e, head, icon, scene
+from .digest import ago, bar, e, fit_score, head, icon, scene
 from .discover import SUPPORTED
 from .tracker import TRACK_JS
 
@@ -270,7 +270,7 @@ def job_row(r, extra_meta: str = "", with_company: bool = True) -> str:
     if r["status"] == "drafted":
         side.append('<a class="tag ready" href="/">Email ready</a>')
     elif r["score"] is not None:
-        side.append(f'<span class="n" title="Fit with your profile">{int(r["score"])}</span>')
+        side.append(fit_score(r["score"]))
     if r["salary"]:
         side.append(f'<span class="tag pay">{e(r["salary"].split("•")[0].strip()[:30])}</span>')
     side.append(f'<span class="age">{e(ago(r["posted_at"] or r["first_seen"]))}</span>')

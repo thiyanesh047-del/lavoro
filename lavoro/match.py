@@ -1,6 +1,7 @@
 """Filtering and scoring jobs against your profile."""
 from __future__ import annotations
 
+import json
 import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
@@ -143,13 +144,24 @@ class AiCheck(BaseModel):
     word: str
 
 
-class JobScore(BaseModel):
+class FitDetail(BaseModel):
+    reason: str                     # one sentence: the overall verdict
+    fits: list[str]                 # what in the profile matches the ad, e.g. "Figma and design systems"
+    missing: list[str]              # what the ad asks for that the profile does not show, e.g. "iOS/Android patterns"
+    red_flags: list[str]            # hard blockers, e.g. "requires 5+ years", "Swedish fluency required", "security clearance"
+
+
+class JobScore(FitDetail):
     score: int                      # 0-10 fit
-    reason: str                     # one or two sentences
     hiring_team: str                # team/function that would manage this hire, e.g. "Data Science", "Founders"
     language: Literal["en", "sv"]   # language the ad is written in
-    red_flags: list[str]            # e.g. "requires 5+ years", "Swedish fluency required", "security clearance"
 
+
+FIT_RULES = """Explain the fit in short lists, each item a phrase of at most 8 words, no full sentences:
+- reason: one sentence with the overall verdict.
+- fits: up to 4 things in the profile that match what the ad asks for.
+- missing: up to 4 things the ad asks for that the profile does not show.
+- red_flags: hard blockers only (required language, years of experience, location, visa, clearance). Often empty."""
 
 SCORE_SYSTEM = """You screen job ads for one candidate. Score fit from 0 to 10:
 10 = the candidate is an obvious strong match and would likely get an interview;
@@ -157,8 +169,58 @@ SCORE_SYSTEM = """You screen job ads for one candidate. Score fit from 0 to 10:
 Be strict about hard requirements (years of experience, required languages, citizenship/clearance).
 Use only facts in the candidate profile. Return the JSON object only.
 
+""" + FIT_RULES + """
+
 CANDIDATE PROFILE:
 {profile}"""
+
+EXPLAIN_SYSTEM = """You explain why one job ad does or does not fit one candidate. Use only facts in the candidate profile.
+Return the JSON object only.
+
+""" + FIT_RULES + """
+
+CANDIDATE PROFILE:
+{profile}"""
+
+
+def _detail_json(s: FitDetail) -> str:
+    return json.dumps({"summary": s.reason, "fits": s.fits[:4], "missing": s.missing[:4], "red_flags": s.red_flags[:4]},
+                      ensure_ascii=False)
+
+
+def _job_prompt(r, desc: str) -> str:
+    return (f"JOB: {r['title']}\nCOMPANY: {r['company']}\nLOCATION: {r['location']} (remote={bool(r['remote'])})\n"
+            f"DEPARTMENT: {r['department'] or '-'}\nSALARY: {r['salary'] or '-'}\n\nAD TEXT:\n{desc}")
+
+
+def explain_jobs(con, cfg, limit: int = 12) -> int:
+    """Jobs scored before the fit was split into lists: fill in what fits, what is missing and the red flags, for the
+    ones the site shows as cards (emails ready, good fit without an email). The score itself is kept."""
+    if not has_claude() or "fit_detail" not in {c[1] for c in con.execute("PRAGMA table_info(jobs)")}:
+        return 0  # the column is added on the next connect that is not blocked by a running write
+    rows = con.execute("SELECT * FROM jobs WHERE fit_detail IS NULL AND score IS NOT NULL AND status IN ('drafted','no_contact') "
+                       "ORDER BY score DESC LIMIT ?", (limit,)).fetchall()
+    if not rows:
+        return 0
+    system = EXPLAIN_SYSTEM.format(profile=read_profile(cfg))
+    effort = cfg.get("llm", {}).get("score_effort", "low")
+
+    def work(r):
+        try:
+            return r["key"], llm.parse(effort=effort, system=system, user=_job_prompt(r, r["description"] or ""),
+                                       schema=FitDetail, max_tokens=3000)
+        except Exception as e:  # noqa: BLE001  tried again next run
+            print(f"  ! could not explain {r['title']} @ {r['company']}: {e}")
+            return r["key"], None
+
+    n = 0
+    with ThreadPoolExecutor(3) as ex:
+        for key, s in ex.map(work, rows):
+            if s:
+                con.execute("UPDATE jobs SET fit_detail=? WHERE key=?", (_detail_json(s), key))
+                n += 1
+    con.commit()
+    return n
 
 
 def _heuristic(profile: str, desc: str) -> int:
@@ -189,8 +251,7 @@ def score_jobs(con, cfg) -> int:
         # Some boards (Workday, SmartRecruiters) list jobs without the ad text; fetch it now so the score is fair.
         filled = "" if r["description"] else fill_description(r)
         desc = r["description"] or filled
-        user = (f"JOB: {r['title']}\nCOMPANY: {r['company']}\nLOCATION: {r['location']} (remote={bool(r['remote'])})\n"
-                f"DEPARTMENT: {r['department'] or '-'}\nSALARY: {r['salary'] or '-'}\n\nAD TEXT:\n{desc}")
+        user = _job_prompt(r, desc)
         try:
             return r["key"], llm.parse(effort=lc.get("score_effort", "low"), system=system, user=user,
                                        schema=JobScore, max_tokens=4000), filled
@@ -208,9 +269,10 @@ def score_jobs(con, cfg) -> int:
             if s is None:
                 con.execute("UPDATE jobs SET score=0, score_reason='model declined', status='scored' WHERE key=?", (key,))
             else:
-                reason = s.reason + (f" Red flags: {'; '.join(s.red_flags)}" if s.red_flags else "")
-                con.execute("UPDATE jobs SET score=?, score_reason=?, hiring_team=?, language=?, status='scored' WHERE key=?",
-                            (max(0, min(10, s.score)), reason, s.hiring_team, s.language, key))
+                reason = s.reason + "".join(f" {label}: {'; '.join(items)}." for label, items in
+                                            (("Fits", s.fits), ("Missing", s.missing), ("Red flags", s.red_flags)) if items)
+                con.execute("UPDATE jobs SET score=?, score_reason=?, fit_detail=?, hiring_team=?, language=?, status='scored' "
+                            "WHERE key=?", (max(0, min(10, s.score)), reason, _detail_json(s), s.hiring_team, s.language, key))
             n += 1
     con.commit()
     return n

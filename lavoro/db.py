@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     passed_filter INTEGER DEFAULT 0,
     score        REAL,
     score_reason TEXT,
+    fit_detail   TEXT,              -- JSON {"summary", "fits", "missing", "red_flags"} from the score
     hiring_team  TEXT,
     language     TEXT,
     status       TEXT DEFAULT 'new' -- new | scored | looked_up | drafted | sent | skipped | closed
@@ -114,10 +115,12 @@ def connect(path: Path = DB_PATH) -> sqlite3.Connection:
     con.execute("PRAGMA journal_mode=WAL")
     con.execute("PRAGMA busy_timeout=60000")
     con.executescript(SCHEMA)
-    try:  # added later: companies you follow
-        con.execute("ALTER TABLE companies ADD COLUMN starred INTEGER DEFAULT 0")
-    except sqlite3.OperationalError:
-        pass
+    for table, column in (("companies", "starred INTEGER DEFAULT 0"),  # added later: companies you follow
+                          ("jobs", "fit_detail TEXT")):                  # added later: what fits, what is missing
+        try:
+            con.execute(f"ALTER TABLE {table} ADD COLUMN {column}")
+        except sqlite3.OperationalError:
+            pass
     return con
 
 

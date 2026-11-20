@@ -10,6 +10,7 @@ soft white haze as you scroll; Soria headlines (Instrument Serif for missing gly
 from __future__ import annotations
 
 import html
+import json
 import shutil
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -131,6 +132,16 @@ h2{font:400 34px/1.1 var(--serif);margin:36px 0 6px;letter-spacing:-.015em}
 .fit .n{font:400 44px/.9 var(--serif);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .fit .of{display:block;margin-top:6px;color:var(--mute);font-size:12px;white-space:nowrap}
 .why{margin:14px 0 0;color:var(--ink-2);font-size:14.5px;max-width:68ch}
+/* What fits, what is missing, what rules it out (digest.fit_breakdown): green ticks, red dashes, red crosses */
+.fitx{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px 28px;margin-top:14px}
+.fitx h4{margin:0 0 8px;font:600 12.5px/1 var(--sans);color:var(--mute)}
+.fitx ul{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.fitx li{position:relative;padding-left:24px;font-size:13.5px;line-height:1.4;color:var(--ink-2)}
+.fitx li::before{position:absolute;left:0;top:1px;width:16px;height:16px;border-radius:50%;font:700 10px/16px var(--sans);text-align:center}
+.fx-yes h4{color:var(--mint-ink)}.fx-yes li::before{content:"✓";background:var(--mint-wash);color:var(--mint-ink)}
+.fx-gap h4{color:var(--rose-ink)}.fx-gap li::before{content:"–";background:var(--rose-wash);color:var(--rose-ink)}
+.fx-no h4{color:var(--rose-ink)}.fx-no li::before{content:"✕";background:var(--rose);color:#fff}
+.fx-no li{color:var(--rose-ink)}
 .to{display:flex;gap:12px;align-items:flex-start;margin-top:18px;padding:12px 14px;border-radius:12px;background:var(--inset)}
 .avatar{flex:none;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#fff;
   box-shadow:0 0 0 1px var(--line) inset;font:400 18px/1 var(--serif);color:var(--ink-2)}
@@ -162,7 +173,7 @@ h2{font:400 34px/1.1 var(--serif);margin:36px 0 6px;letter-spacing:-.015em}
 .btn.text:hover{color:var(--ink);background:transparent}
 .spacer{flex:1}
 .job.is-sent{opacity:.6}
-.job.is-sent .letter,.job.is-sent .why{display:none}
+.job.is-sent .letter,.job.is-sent .why,.job.is-sent .fitx{display:none}
 
 .list{overflow:hidden}
 .row{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:14px 18px;border-top:1px solid var(--line);
@@ -199,6 +210,17 @@ a.row:hover{background:#fcfbf9}
 .trackbtn[aria-pressed=true]{background:var(--rose-wash);color:var(--rose);box-shadow:0 0 0 1px rgba(225,29,72,.35) inset}
 .trackbtn[aria-pressed=true] svg{fill:currentColor}
 .side .n{font:400 26px/1 var(--serif);color:var(--ink);font-variant-numeric:tabular-nums}
+/* Fit score (digest.fit_score): the number out of 10, and under it the word for it, coloured by band */
+.fs{display:flex;flex-direction:column;align-items:flex-end;gap:5px;line-height:1}
+.fs-n{font:400 26px/1 var(--serif);color:var(--ink);font-variant-numeric:tabular-nums}
+.fs-n small{font:500 12px/1 var(--sans);color:var(--mute);margin-left:2px}
+.row-side .fs{margin-bottom:4px}.row-side .fs-n{font-size:28px}
+.fs-w{display:inline-flex;align-items:center;gap:5px;font:600 11.5px/1 var(--sans);color:var(--mute);white-space:nowrap}
+.fs-w::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+.fs-top .fs-w,.fs-strong .fs-w{color:var(--mint-ink)}.fs-top .fs-w::before,.fs-strong .fs-w::before{background:var(--mint)}
+.fs-partial .fs-w{color:var(--amber-ink)}
+.fs-weak .fs-w::before,.fs-poor .fs-w::before{background:#c9c6bf}
+.fit .fs-w{font-size:12px}
 .tag{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:999px;font:600 11.5px/1 var(--sans)}
 .tag.ready{background:var(--mint-wash);color:var(--mint-ink);box-shadow:0 0 0 1px var(--mint-ring) inset;text-decoration:none}
 .tag.pay{background:#f3f1ec;color:var(--ink-2)}
@@ -341,6 +363,54 @@ def e(s) -> str:
     return html.escape(str(s if s is not None else ""))
 
 
+# What a fit score (0–10, Claude reading the role against profile.md) means, in words: (lowest score, word, band).
+FIT_BANDS = [(9, "Top fit", "top"), (7, "Strong fit", "strong"), (5, "Partial fit", "partial"), (3, "Weak fit", "weak"),
+             (0, "Poor fit", "poor")]
+
+
+def fit_band(score) -> tuple[int, str, str]:
+    """(score as a whole number, the word for it, its band class)."""
+    n = max(0, min(10, int(score or 0)))
+    word, band = next((w, b) for low, w, b in FIT_BANDS if n >= low)
+    return n, word, band
+
+
+def fit_score(score) -> str:
+    """The fit score on a job line: the number out of 10, and under it what that number means."""
+    n, word, band = fit_band(score)
+    return (f'<span class="fs fs-{band}" title="Fit with your profile: {n} of 10. Claude reads the role against your profile.">'
+            f'<span class="fs-n">{n}<small>/10</small></span><span class="fs-w">{word}</span></span>')
+
+
+def fit_detail(j) -> dict:
+    """{"summary", "fits", "missing", "red_flags"} for a scored job. Jobs scored before the lists existed keep one
+    note: its "Red flags: a; b" tail becomes the red-flag list, the rest is the summary."""
+    raw = j["fit_detail"] if "fit_detail" in j.keys() else None
+    if raw:
+        try:
+            d = json.loads(raw)
+            return {"summary": d.get("summary") or "", "fits": d.get("fits") or [], "missing": d.get("missing") or [],
+                    "red_flags": d.get("red_flags") or []}
+        except ValueError:
+            pass
+    text = (j["score_reason"] or "").strip()
+    summary, _, flags = text.partition(" Red flags: ")
+    return {"summary": summary.strip(), "fits": [], "missing": [],
+            "red_flags": [f.strip().rstrip(".") for f in flags.split(";") if f.strip()]}
+
+
+def fit_breakdown(j) -> str:
+    """The verdict in one line, then what fits (green), what is missing (red) and what rules it out (red)."""
+    d = fit_detail(j)
+    parts = [f'<p class="why">{e(d["summary"])}</p>'] if d["summary"] else []
+    cols = [(d["fits"], "fx-yes", "What fits"), (d["missing"], "fx-gap", "What is missing"), (d["red_flags"], "fx-no", "Not a fit")]
+    lists = "".join(f'<div class="{cls}"><h4>{title}</h4><ul>{"".join(f"<li>{e(x)}</li>" for x in items)}</ul></div>'
+                    for items, cls, title in cols if items)
+    if lists:
+        parts.append(f'<div class="fitx">{lists}</div>')
+    return "".join(parts)
+
+
 TRUST_LABEL = {"listed_in_ad": "Listed in the ad", "published": "Published online", "verified": "Verified", "likely": "Likely", "guessed": "Guessed, check first",
                "none": "No email"}
 SOURCE_LABEL = {"ad": "the job ad", "web_search": "web search", "hunter": "Hunter", "pattern": "email pattern"}
@@ -369,10 +439,11 @@ def meta_line(j) -> str:
 
 
 def row(j, show_why=False) -> str:
-    why = f'<div class="row-why">{e(j["score_reason"])}</div>' if show_why and j["score_reason"] else ""
+    summary = fit_detail(j)["summary"]
+    why = f'<div class="row-why">{e(summary)}</div>' if show_why and summary else ""
     return (f'<a class="row" href="{e(j["url"])}" target="_blank" rel="noopener"><div>'
             f'<div class="row-title">{e(j["title"])}</div><div class="row-meta">{meta_line(j)}</div>{why}</div>'
-            f'<div class="row-side"><span class="n">{int(j["score"] or 0)}</span>{e(ago(j["posted_at"]))}</div></a>')
+            f'<div class="row-side">{fit_score(j["score"])}{e(ago(j["posted_at"]))}</div></a>')
 
 
 def _job_card(j) -> str:
@@ -388,8 +459,8 @@ def _job_card(j) -> str:
     return f"""<article class="card job" data-key="{e(j['key'])}" data-subject="{e(j['subject'])}">
 <div class="job-head"><div><h3 class="job-title"><a href="{e(j['url'])}" target="_blank" rel="noopener">{e(j['title'])}</a></h3>
 <div class="job-meta">{meta_line(j)}{(' · posted ' + e(posted)) if posted else ''}</div></div>
-<div class="fit" title="How well this role fits your profile"><span class="n">{int(j['score'] or 0)}</span><span class="of">of 10 fit</span></div></div>
-{f'<p class="why">{e(j["score_reason"])}</p>' if j["score_reason"] else ''}
+<div class="fit fs-{fit_band(j['score'])[2]}" title="How well this role fits your profile: Claude reads the role against your profile"><span class="n">{fit_band(j['score'])[0]}</span><span class="of">of 10 · <span class="fs-w">{fit_band(j['score'])[1]}</span></span></div></div>
+{fit_breakdown(j)}
 <div class="to"><span class="avatar">{e(initials(j['c_name']))}</span><div class="to-main">
 <div class="to-name">{e(j['c_name'] or 'Hiring inbox')}{role}</div>
 <div class="to-mail">{e(j['to_email'])}<span class="trust {e(status)}">{e(TRUST_LABEL.get(status, status))}</span>
@@ -490,8 +561,8 @@ def render(con, cfg, live: bool = False) -> str:
 <header class="hero"><div class="wrap"><h1>{headline}</h1>
 <div class="glass"><p class="lede">{lede}</p>
 <div class="meta-row"><span><span class="dot"></span><b>{new_today:,}</b> new roles today</span><span class="sep">·</span>
-<span><b>{passed}</b> matched your filters this week</span><span class="sep">·</span>
-<span><b>{boards}</b> company boards watched</span><span class="sep">·</span><span><b>{sent}</b> sent so far</span></div>
+<span><b>{passed:,}</b> matched your filters this week</span><span class="sep">·</span>
+<span><b>{boards:,}</b> company boards watched</span><span class="sep">·</span><span><b>{sent:,}</b> sent so far</span></div>
 {region_html}</div>
 </div></header><main><div class="wrap">"""]
 
