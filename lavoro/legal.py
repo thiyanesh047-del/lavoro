@@ -130,6 +130,12 @@ well.</p>
 accept it. If any part of these terms cannot be enforced, the rest still applies. If we do not enforce a part, we have
 not given it up.</p>
 """),
+    ("governing-law", "Governing law", """
+<p>These terms are governed by the laws of Sweden, without regard to its conflict-of-law rules. Any dispute about
+them or about Lavoro goes to the courts of Sweden, with Stockholm District Court (Stockholms tingsrätt) as the first
+instance. If you use Lavoro as a consumer, this does not take away the protection of the mandatory laws of the country
+where you live, or any right those laws give you to go to court there.</p>
+"""),
     ("contact", "Contact", """
 <p>Questions about these terms: open an issue at <a href="REPO/issues">REPO/issues</a>. We cannot answer requests
 about data Lavoro saved on your computer, because we never see it.</p>
