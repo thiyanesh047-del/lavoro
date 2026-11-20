@@ -14,8 +14,9 @@ from .sources import fill_description
 
 
 def _has_any(text: str, words: list[str]) -> bool:
-    t = (text or "").lower()
-    return any(re.search(rf"(?<![a-zåäö]){re.escape(w.lower())}(?![a-zåäö])", t) for w in words)
+    # Hyphens count as spaces, so "UX-designer" (as Swedish ads write it) matches "ux designer".
+    t = (text or "").lower().replace("-", " ")
+    return any(re.search(rf"(?<![a-zåäö]){re.escape(w.lower().replace('-', ' '))}(?![a-zåäö])", t) for w in words)
 
 
 def _age_ok(posted: str | None, max_days: int) -> bool:
@@ -48,7 +49,11 @@ def passes_filter(job, s: dict, region: dict | None = None) -> bool:
         loc_ok = (not re.sub(r"[^a-z]", "", loc.replace("remote", ""))) or _has_any(loc, region["remote"])
     if not loc_ok:
         return False
-    return _age_ok(job["posted_at"], s.get("max_age_days", 30))
+    # Feeds keep stale ads, so they get the age limit. A role still listed on the company's own board is open,
+    # however old its date: consultancies keep "always hiring" ads up for years. board_max_age_days: 0 = no limit.
+    src = job["source"] if "source" in job.keys() else ""
+    days = s.get("max_age_days", 30) if src in AGGREGATORS or not src else s.get("board_max_age_days", 0)
+    return not days or _age_ok(job["posted_at"], days)
 
 
 AGGREGATORS = ("jobtech", "arbeitnow", "hn", "web")   # feeds that repeat ads from companies' own boards
@@ -86,7 +91,7 @@ def apply_filter(con, cfg) -> int:
     mark_duplicates(con)
     s = cfg.get("search", {})
     region = regions.resolve(cfg)
-    rows = con.execute("SELECT key, title, company, location, remote, posted_at FROM jobs WHERE status='new'").fetchall()
+    rows = con.execute("SELECT key, source, title, company, location, remote, posted_at FROM jobs WHERE status='new'").fetchall()
     n = 0
     for r in rows:
         ok = passes_filter(r, s, region)

@@ -34,6 +34,8 @@ search:
   remote_ok: true
   remote_regions: [europe, emea, eu, worldwide, anywhere, global]
   max_age_days: 30
+  # Ads on a company's own job board stay up while the role is open, so they have no age limit (0).
+  board_max_age_days: 0
 
   # Sweden only: the public Platsbanken / JobTech API. Free, no key, covers almost every ad in Sweden.
   jobtech:

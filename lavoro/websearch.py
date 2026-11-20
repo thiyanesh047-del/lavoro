@@ -81,7 +81,11 @@ def search_jobs(con, cfg) -> tuple[int, int]:
             f"REMOTE OK: {'yes, within ' + regions.LABELS[reg['name']] if s.get('remote_ok', True) else 'no'}\n"
             f"RETURN AT MOST: {int(w.get('max_results', 25))} postings\n\n"
             f"PERSON (for judging fit and level):\n{read_profile(cfg)[:3000]}")
-    res = llm.parse(effort=w.get("effort", "low"), system=JOBS_SYSTEM, user=user, schema=WebJobs, web="search")
+    try:
+        res = llm.parse(effort=w.get("effort", "low"), system=JOBS_SYSTEM, user=user, schema=WebJobs, web="search")
+    except RuntimeError as e:
+        print(f"  ! web search failed: {e}")
+        return 0, 0
     if not res:
         return 0, 0
     new = 0
@@ -146,7 +150,11 @@ def find_raises(con, cfg, force: bool = False) -> tuple[int, int]:
             f"PERSON'S FIELD: {', '.join(titles)}\n"
             f"RETURN AT MOST: {int(f.get('max', 8))} companies\n\n"
             f"PERSON:\n{read_profile(cfg)[:2000]}")
-    res = llm.parse(effort=f.get("effort", "low"), system=RAISES_SYSTEM, user=user, schema=Raises, web="search")
+    try:
+        res = llm.parse(effort=f.get("effort", "low"), system=RAISES_SYSTEM, user=user, schema=Raises, web="search")
+    except RuntimeError as e:
+        print(f"  ! funding search failed: {e}")
+        return 0, 0
     stamp.write_text(db.now(), encoding="utf-8")
     if not res:
         return 0, 0

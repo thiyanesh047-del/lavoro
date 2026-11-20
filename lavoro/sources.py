@@ -169,6 +169,17 @@ def recruitee(slug: str, company: str | None = None) -> list[dict]:
 _TT = "{https://teamtailor.com/locations}"
 
 
+_tt_demo: dict[str, bool] = {}
+
+
+def _teamtailor_demo(host: str) -> bool:
+    """Teamtailor runs demo career sites whose jobs are not real ("This is just a demo career site")."""
+    if host not in _tt_demo:
+        r = get(f"https://{host}/jobs", timeout=15)
+        _tt_demo[host] = r is not None and "demo career site" in r.text.lower()
+    return _tt_demo[host]
+
+
 def teamtailor(slug: str, company: str | None = None) -> list[dict]:
     # slug is either "acme" (acme.teamtailor.com) or a custom careers host like "careers.acme.com"
     host = slug if "." in slug else f"{slug}.teamtailor.com"
@@ -181,6 +192,8 @@ def teamtailor(slug: str, company: str | None = None) -> list[dict]:
         return []
     ch = root.find("channel")
     company = company or (ch.findtext("title") if ch is not None else None) or slug
+    if root.find("channel/item") is not None and _teamtailor_demo(host):
+        return []  # a Teamtailor demo site: its jobs are not real
     out = []
     for it in root.iter("item"):
         locs = []

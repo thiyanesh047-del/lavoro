@@ -124,21 +124,19 @@ def _cli(*, effort: str, system: str, user: str, schema: type[T], web: bool | st
             p = subprocess.run(cmd, input=prompt, capture_output=True, text=True, encoding="utf-8",
                                cwd=cwd, timeout=600 if web else 240)
         except subprocess.TimeoutExpired:
-            print("  ! claude CLI timed out")
-            return None
+            raise RuntimeError("claude CLI timed out")  # a failure, not an answer: callers retry later
     try:
         out = json.loads(p.stdout)
     except json.JSONDecodeError:
-        print(f"  ! claude CLI gave no JSON (exit {p.returncode}): {(p.stderr or p.stdout)[:300]}")
-        return None
+        raise RuntimeError(f"claude CLI gave no JSON (exit {p.returncode}): {(p.stderr or p.stdout)[:300]}")
     if out.get("is_error"):
         msg = str(out.get("result") or out.get("api_error_status") or "")
         if any(w in msg.lower() for w in ("limit", "usage", "quota", "rate")):
             _stop.set()
             print(f"  ! Claude plan limit reached, stopping AI steps for this run: {msg[:200]}")
-        else:
-            print(f"  ! claude CLI error: {msg[:300]}")
-        return None
+            return None
+        # Any other error is a failure, not a refusal: raise, so a job is retried instead of being scored 0.
+        raise RuntimeError(f"claude CLI error: {msg[:300] or 'no message'}")
     data = out.get("structured_output")
     if data is None:
         return None

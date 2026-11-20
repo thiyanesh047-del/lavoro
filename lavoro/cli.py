@@ -128,8 +128,12 @@ def cmd_ai_check(con, cfg, a):
     print(f"AI: {llm.describe()}")
     if not llm.backend():
         return
-    r = llm.parse(effort="low", system="Answer the question.", user="Reply with ok=true and the word 'ready'.",
-                  schema=match.AiCheck)
+    try:
+        r = llm.parse(effort="low", system="Answer the question.", user="Reply with ok=true and the word 'ready'.",
+                      schema=match.AiCheck)
+    except RuntimeError as e:
+        print(f"Claude call failed: {e}")
+        return
     print("Claude answered:", r.model_dump() if r else "nothing (see message above)")
 
 
