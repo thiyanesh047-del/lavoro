@@ -304,6 +304,17 @@ def cmd_serve(con, cfg, a):
     serve(cfg, a.port, a.open)
 
 
+def cmd_stop(con, cfg, a):
+    """Close the Lavoro site, e.g. one started in the background with Lavoro.bat."""
+    import requests
+    url = f"http://127.0.0.1:{a.port}"
+    try:
+        requests.post(f"{url}/api/stop", json={}, headers={"Origin": url}, timeout=5)
+        print(f"Lavoro's site on {url} is stopped.")
+    except requests.RequestException:
+        print(f"Lavoro's site is not running on {url}.")
+
+
 def cmd_region(con, cfg, a):
     """Show or set the search region in config.yaml."""
     if not a.name:
@@ -376,6 +387,7 @@ def main(argv=None):
     p = sub.add_parser("region", help="show or set the search region"); p.add_argument("name", nargs="?", choices=list(regions.LABELS))
     sub.add_parser("legal", help="write the terms and privacy page to docs/legal.html")
     sub.add_parser("ai-check", help="one tiny Claude call to confirm the AI backend works")
+    p = sub.add_parser("stop", help="close the Lavoro site"); p.add_argument("--port", type=int, default=8765)
     p = sub.add_parser("serve", help="open the Lavoro site on http://127.0.0.1:8765 (this computer only)")
     p.add_argument("--port", type=int, default=8765); p.add_argument("--open", action="store_true")
     a = ap.parse_args(argv)

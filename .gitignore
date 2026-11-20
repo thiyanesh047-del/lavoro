@@ -16,3 +16,6 @@ __pycache__/
 
 # promo videos built with HyperFrames (large renders)
 videos/
+
+# screenshots kept only on this computer
+docs/screens/

@@ -15,7 +15,8 @@ Everything shows on a local site at http://127.0.0.1:8765.
 |---|---|
 | "set up Lavoro", "install this", "get started", or `profile.md` / `config.yaml` is missing | Follow the `lavoro-setup` skill. |
 | "run it", "find jobs", "morning run" | Follow the `morning-run` skill. |
-| "open the site", "show me" | Run `python -m lavoro serve --open` in the background, then give the URL. |
+| "open the site", "show me" | Run `python -m lavoro serve --open` in the background, then give the URL. Tell the user they can double-click `Lavoro.bat` (Windows) or `lavoro.command` (macOS) next time. |
+| "stop the site", "close it" | `python -m lavoro stop`. |
 | "add Spotify", "watch this company" | `python -m lavoro add <website, careers link or name>`. A careers link is the surest; Workday and SuccessFactors boards need one. |
 | "search all of Europe", "only Sweden" | `python -m lavoro region <sweden\|nordics\|europe\|asia\|worldwide\|custom>`. The next run re-checks jobs the old region skipped. |
 | "wrong jobs", "too few matches", "too many", "tune my search" | Follow the `tune-search` skill. |

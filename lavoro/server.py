@@ -18,6 +18,7 @@ POST /api/write              {"id", "kind": "kit" | "followup"} Claude writes an
 POST /api/mark               {"key": ..., "status": "sent" | "skipped" | "drafted"}
 POST /api/company            {"text"} add a company by name or link, fetch its roles
 POST /api/run               {"discover": bool} start the pipeline in the background
+POST /api/stop              close the site (python -m lavoro stop)
 """
 from __future__ import annotations
 
@@ -269,6 +270,11 @@ def make_handler(port: int):
                 body = json.loads(self.rfile.read(n) or b"{}")
             except (ValueError, json.JSONDecodeError):
                 return self._json(400, {"error": "bad JSON"})
+
+            if path == "/api/stop":  # `python -m lavoro stop`: close the site (a run already going keeps going)
+                self._json(200, {"ok": True})
+                threading.Thread(target=self.server.shutdown, daemon=True).start()
+                return
 
             if path in ("/api/profile/upload", "/api/profile/link"):
                 if not _profile_busy.acquire(blocking=False):

@@ -188,6 +188,13 @@ python -m lavoro run --region nordics
 
 Changing the region sends jobs the old region skipped back through the filter on the next run. That run also refreshes the YC company list for the new region.
 
+## Open Lavoro any time
+
+- **Windows:** double-click `Lavoro.bat`. The site starts in the background, with no window left open, and opens in your browser. Double-clicking again while it runs only opens the browser.
+- **macOS:** run `chmod +x lavoro.command` once, then double-click `lavoro.command`. On Linux, run `./lavoro.command`.
+- **Close it:** `python -m lavoro stop`.
+- **Start it at login (Windows):** press Win+R, type `shell:startup`, and put a shortcut to `Lavoro.bat` in that folder.
+
 ## Every morning, automatically
 
 - **Windows:** Task Scheduler → Create Basic Task → Daily → Start a program → `run_daily.bat`. Run the task as your own user, so the `claude` login is available. Turn on "Run task as soon as possible after a scheduled start is missed". The log goes to `output/run.log`. Extra arguments are passed on, e.g. `run_daily.bat --region europe`.

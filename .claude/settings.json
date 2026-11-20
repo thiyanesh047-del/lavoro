@@ -26,6 +26,7 @@
       "Bash(python -m lavoro digest:*)",
       "Bash(python -m lavoro run:*)",
       "Bash(python -m lavoro serve:*)",
+      "Bash(python -m lavoro stop:*)",
       "Bash(python -m lavoro logos:*)",
       "Bash(python -m lavoro export:*)",
       "Bash(python -m lavoro notify:*)",
