@@ -180,6 +180,7 @@ a.row:hover{background:#fcfbf9}
 .logo-t{position:relative;display:inline-grid;place-items:center;flex:none;overflow:hidden;vertical-align:middle;
   background:var(--inset);box-shadow:0 0 0 1px var(--line) inset;color:var(--ink);font-family:var(--serif);line-height:1}
 .logo-t:has(img){background:#fff}
+.logo-t.has{color:transparent}  /* the letter must not show through a see-through logo */
 .logo-t img{position:absolute;inset:16%;width:68%;height:68%;object-fit:contain;background:#fff}
 .logo-t.mini{width:20px;height:20px;border-radius:6px;font-size:12px;margin-right:6px;vertical-align:middle;position:relative;top:-1px}
 .logo-t.mini img{inset:10%;width:80%;height:80%}

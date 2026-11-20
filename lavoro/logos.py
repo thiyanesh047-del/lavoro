@@ -74,7 +74,7 @@ def tile(cid: int | None, name: str, cls: str = "mono") -> str:
     img = ""
     if cid and state(cid) != "miss":
         # One retry after a moment (the site may have been restarting), then the letter shows.
-        img = (f'<img src="/logo/{cid}" alt="" loading="lazy" decoding="async" onload="this.parentNode.classList.add(\'has\')" '
+        img = (f'<img src="/logo/{cid}" alt="" loading="lazy" decoding="async" onload="this.parentNode.classList.add(\'has\');if(this.naturalWidth&lt;72)this.parentNode.classList.add(\'lo\')" '
                f'onerror="if(this.dataset.r)this.remove();else{{this.dataset.r=1;setTimeout(()=>this.src=\'/logo/{cid}?r=1\',1500)}}">')
     return f'<span class="logo-t {cls}" aria-hidden="true">{letter}{img}</span>'
 

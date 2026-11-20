@@ -58,6 +58,7 @@ header.hero.slim>.wrap{width:100%}  /* line up with the sections below */
 .mono{width:76px;height:76px;border-radius:20px;font-size:38px}
 .mono.has{background:transparent;box-shadow:none}
 .mono.has img{inset:0;width:100%;height:100%;background:transparent}
+.mono.has.lo img{inset:18%;width:64%;height:64%}  /* a small icon stays near its real size instead of going soft */
 .oneliner{margin:16px 0 0;color:var(--ink-2);font-size:17px;line-height:1.55;max-width:60ch}
 .figs{display:flex;flex-wrap:wrap;align-items:flex-end;row-gap:18px;margin:28px 0 0;padding:0;list-style:none}
 .figs li{padding:2px 28px 2px 0;margin-right:28px;border-right:1px solid rgba(23,23,23,.14);min-width:0}
