@@ -5,12 +5,13 @@ description: Fix Lavoro's search when the results are wrong — too few matches,
 
 # Tune the search
 
-Jobs pass through four gates on each run. Find the gate that is wrong before changing anything.
+Jobs pass through five gates on each run. Find the gate that is wrong before changing anything.
 
 1. **Filter** (no Claude): the title must contain one of `search.titles_include` and none of `search.titles_exclude`; the location must match `search.locations_include` (or the region preset), or the job must be remote in `remote_regions` with `remote_ok: true`; the company must not be in `companies_exclude`; ads from Platsbanken, Hacker News, Arbeitnow and the web search must be younger than `max_age_days` (roles on a company's own board have no age limit while `board_max_age_days` is 0).
-2. **Score** (Claude, up to `llm.max_jobs_to_score_per_run` per run): 0 to 10 against `profile.md`.
-3. **Threshold**: only jobs at or above `llm.min_score` get a contact lookup and a draft.
-4. **Contact**: a job with no email found shows under "Good fit, no email found".
+2. **Quick check** (Claude, about 40 roles per call, up to `llm.max_jobs_to_triage_per_run` per run; off with `llm.triage: false`): sets aside clearly wrong roles from the title, company, place and the ad's first lines. They get score 0 and a reason starting "Quick check:".
+3. **Score** (Claude, one call per role, up to `llm.max_jobs_to_score_per_run` per run): 0 to 10 against `profile.md`.
+4. **Threshold**: only jobs at or above `llm.min_score` get a contact lookup and a draft.
+5. **Contact**: a job with no email found shows under "Good fit, no email found".
 
 ## 1. Look
 
@@ -36,6 +37,7 @@ Then read `config.yaml` (the `search:` and `llm:` sections) and `profile.md`.
 |---|---|---|
 | "jobs passed filter" is tiny | Titles or places too narrow | Add title variants to `titles_include` (e.g. "product designer", "ux designer", "ui designer", and local terms such as "UX-designer"). Add spellings to `locations_include` (Göteborg/Gothenburg). Or widen the region. |
 | Many passed, few scored | The per-run cap | Raise `llm.max_jobs_to_score_per_run` (each job is one Claude call on the user's plan), or let a few runs catch up. |
+| A good role was set aside by the quick check | The quick check was too strict for this profile | Score it in full with `python -m lavoro rescore <key>`. If it keeps happening, ask the user what to make clearer in `profile.md`, or turn the quick check off with `llm.triage: false`. |
 | Scored, but all below `min_score` | Bar too high, or profile missing facts | Lower `llm.min_score` by 1, or ask the user for missing facts for `profile.md`. Never invent them. |
 | Wrong kind of role scores high | Titles too broad, or profile vague | Add words to `titles_exclude`; ask the user what to make clearer in `profile.md`. |
 | Too senior | Seniority words missing | Add "senior", "staff", "principal", "lead", "head of" to `titles_exclude`. |

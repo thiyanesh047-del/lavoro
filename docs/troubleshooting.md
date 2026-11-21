@@ -32,7 +32,7 @@ Only one run can go at a time. The lock is released as soon as the run's process
 
 ## The first run is slow
 
-The first run (or a run with `--discover`) builds the company list and then reads every job board: about 6,900 boards, from the Y Combinator list and the bundled startup list. Reading them took 7 minutes in a test (418 seconds for 6,926 boards on a home connection); the first run also finds job boards for new companies and scores roles, so expect 15 minutes or more. Later runs read the same boards, so each daily run takes a similar time; run it in the background, or on a schedule (see the README).
+The first run (or a run with `--discover`) builds the company list and then reads every job board: about 6,900 boards, from the Y Combinator list and the bundled startup list. Reading them took 7 minutes in a test (418 seconds for 6,926 boards on a home connection); the first run also finds job boards for new companies and scores roles, so expect 15 minutes or more. Later runs are quicker: boards where no role has ever passed your filter are read once every 3 days (`search.quiet_boards_every_days`), a third of them each day, while companies you follow and boards with roles that fit are read every run. `python -m lavoro fetch --all` reads every board now. Run it in the background, or on a schedule (see the README).
 
 To keep the bundled list out of a new setup, turn it off in `config.yaml` before the first run. Companies already added stay in your list.
 

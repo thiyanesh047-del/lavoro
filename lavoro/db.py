@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS jobs (
     fit_detail   TEXT,              -- JSON {"summary", "fits", "missing", "red_flags"} from the score
     hiring_team  TEXT,
     language     TEXT,
-    status       TEXT DEFAULT 'new' -- new | scored | looked_up | drafted | sent | skipped | closed
+    status       TEXT DEFAULT 'new' -- new | scored | looked_up | no_contact | drafted | sent | skipped | duplicate | closed
 );
 CREATE INDEX IF NOT EXISTS ix_jobs_score ON jobs(score);
 CREATE INDEX IF NOT EXISTS ix_jobs_company ON jobs(company_id, status);
@@ -116,7 +116,8 @@ def connect(path: Path = DB_PATH) -> sqlite3.Connection:
     con.execute("PRAGMA busy_timeout=60000")
     con.executescript(SCHEMA)
     for table, column in (("companies", "starred INTEGER DEFAULT 0"),  # added later: companies you follow
-                          ("jobs", "fit_detail TEXT")):                  # added later: what fits, what is missing
+                          ("jobs", "fit_detail TEXT"),                   # added later: what fits, what is missing
+                          ("jobs", "triage TEXT")):                      # added later: keep | drop, the quick first pass
         try:
             con.execute(f"ALTER TABLE {table} ADD COLUMN {column}")
         except sqlite3.OperationalError:
@@ -210,8 +211,11 @@ def upsert_job(con, job: dict) -> bool:
     ts = now()
     row = con.execute("SELECT key FROM jobs WHERE key=?", (job["key"],)).fetchone()
     if row:
-        con.execute("UPDATE jobs SET last_seen=?, status=CASE WHEN status='closed' THEN 'new' ELSE status END WHERE key=?",
-                    (ts, job["key"]))
+        # A NULL description was dropped to save disk space while the job was skipped. Once the job is back in play
+        # (reopened by refilter or a region change), the next fetch brings the ad text back.
+        con.execute("UPDATE jobs SET last_seen=?, status=CASE WHEN status='closed' THEN 'new' ELSE status END, "
+                    "description=CASE WHEN description IS NULL AND status<>'skipped' THEN ? ELSE description END WHERE key=?",
+                    (ts, job.get("description"), job["key"]))
         return False
     con.execute(
         """INSERT INTO jobs(key, source, company_id, company, domain, title, location, remote, department, url,

@@ -36,7 +36,7 @@ Everything shows on a local site at http://127.0.0.1:8765.
 
 ## Hard rules
 
-- Never send an email or create one in someone's mailbox. Lavoro only drafts; the user sends.
+- Never send an email, and never put one in anyone else's mailbox. Lavoro only drafts; the user sends. The one exception is opt-in: with `email.gmail_drafts: true`, Lavoro saves drafts into the user's own Gmail Drafts folder (`lavoro/gmail.py`, compose scope only, it cannot send or read mail).
 - Never scrape LinkedIn or log into any site for the user. Use public job feeds, company pages, and web search only.
 - Never invent facts in `profile.md` or in an email. Use only what the user gave you.
 - Never commit or upload `config.yaml`, `profile.md`, `data/` or `output/`. They hold the user's personal data and the personal data of contacts.

@@ -58,6 +58,8 @@ def passes_filter(job, s: dict, region: dict | None = None) -> bool:
 
 
 AGGREGATORS = ("jobtech", "arbeitnow", "hn", "web")   # feeds that repeat ads from companies' own boards
+# Feeds whose job list includes the ad text (Workday, SmartRecruiters and SuccessFactors leave it out: fill_description).
+FEED_HAS_TEXT = ("greenhouse", "ashby", "workable", "lever", "recruitee", "teamtailor", "jobtech", "arbeitnow", "hn")
 
 
 def _norm(t: str | None) -> str:
@@ -237,10 +239,92 @@ def _heuristic(profile: str, desc: str) -> int:
     return min(10, 3 + len(hits) // 8)
 
 
-def score_jobs(con, cfg) -> int:
-    """Score new jobs that passed the filter, newest first, up to llm.max_jobs_to_score_per_run."""
+class TriageItem(BaseModel):
+    id: int
+    keep: bool
+    reason: str
+
+
+class TriageBatch(BaseModel):
+    jobs: list[TriageItem]
+
+
+TRIAGE_SYSTEM = """You do a quick first pass over job ads for one candidate, before each ad is read in full.
+For every job in the list, decide keep or drop:
+- keep=false only when the role is clearly wrong for this candidate: a different field, far more senior than the
+  candidate, or a hard blocker visible in what is shown (a language the candidate does not speak, a licence they lack).
+- keep=true whenever the role could plausibly fit, or you are unsure. A wrong drop loses the job for good;
+  a wrong keep only costs one more read.
+Seniority: judge it from explicit signs only ("Senior", "Lead", "Head of", "5+ years"). "Manager", "Owner" or
+"Consultant" in a title does not by itself make a role senior. Graduate, trainee, intern, junior and early-career
+programmes are entry level whatever the role name inside them says (e.g. "Graduate Program - Technology Manager").
+reason: at most 8 words, e.g. "sales role, candidate is a designer".
+Return one entry per job, with the job's id. Use only facts in the candidate profile.
+
+CANDIDATE PROFILE:
+{profile}"""
+
+
+def triage_enabled(cfg) -> bool:
+    return bool(cfg.get("llm", {}).get("triage", True)) and has_claude()
+
+
+def _triage_line(i: int, r) -> str:
+    where = (r["location"] or "-") + (" (remote)" if r["remote"] else "")
+    snippet = " ".join((r["description"] or "").split())[:280]
+    return f"[{i}] {r['title']} | {r['company']} | {where} | {r['department'] or '-'}" + (f"\n    {snippet}" if snippet else "")
+
+
+def triage_jobs(con, cfg) -> tuple[int, int]:
+    """The quick first pass: Claude looks at many new roles per call (title, company, place, the ad's first lines) and
+    drops the clearly wrong ones, so the full score, one call per role, goes to roles that might fit.
+    A dropped role is scored 0 with the reason; `rescore <key>` reads it in full. Returns (kept, dropped)."""
+    if not triage_enabled(cfg):
+        return 0, 0
+    lc = cfg.get("llm", {})
     rows = con.execute(
-        "SELECT * FROM jobs WHERE passed_filter=1 AND score IS NULL AND status='new' ORDER BY first_seen DESC LIMIT ?",
+        "SELECT key, title, company, location, remote, department, description FROM jobs "
+        "WHERE passed_filter=1 AND score IS NULL AND status='new' AND triage IS NULL ORDER BY first_seen DESC LIMIT ?",
+        (lc.get("max_jobs_to_triage_per_run", 600),)).fetchall()
+    if not rows:
+        return 0, 0
+    size = max(5, int(lc.get("triage_batch", 40)))
+    batches = [rows[i:i + size] for i in range(0, len(rows), size)]
+    system = TRIAGE_SYSTEM.format(profile=read_profile(cfg))
+
+    def work(batch):
+        user = "JOBS:\n" + "\n".join(_triage_line(i, r) for i, r in enumerate(batch, 1))
+        try:
+            return batch, llm.parse(effort="low", system=system, user=user, schema=TriageBatch, max_tokens=8000)
+        except Exception as e:  # noqa: BLE001  this batch is tried again next run
+            print(f"  ! quick check failed for {len(batch)} roles: {e}")
+            return batch, "error"
+
+    kept = dropped = 0
+    with ThreadPoolExecutor(3) as ex:
+        for batch, out in ex.map(work, batches):
+            if out == "error" or (out is None and llm._stop.is_set()):
+                continue
+            verdicts = {t.id: t for t in (out.jobs if out else [])}
+            for i, r in enumerate(batch, 1):
+                t = verdicts.get(i)
+                if t is None or t.keep:  # no answer for a role: it gets the full read
+                    con.execute("UPDATE jobs SET triage='keep' WHERE key=?", (r["key"],))
+                    kept += 1
+                else:
+                    con.execute("UPDATE jobs SET triage='drop', score=0, score_reason=?, status='scored' WHERE key=?",
+                                (f"Quick check: {t.reason.strip().rstrip('.')}.", r["key"]))
+                    dropped += 1
+    con.commit()
+    return kept, dropped
+
+
+def score_jobs(con, cfg) -> int:
+    """Score new jobs that passed the filter (and the quick check, when it is on), newest first,
+    up to llm.max_jobs_to_score_per_run."""
+    keep = " AND triage='keep'" if triage_enabled(cfg) else ""
+    rows = con.execute(
+        f"SELECT * FROM jobs WHERE passed_filter=1 AND score IS NULL AND status='new'{keep} ORDER BY first_seen DESC LIMIT ?",
         (cfg.get("llm", {}).get("max_jobs_to_score_per_run", 40),),
     ).fetchall()
     return _score_rows(con, cfg, rows, set_status=True)
@@ -273,6 +357,13 @@ def _score_rows(con, cfg, rows, set_status: bool) -> int:
         con.commit()
         return len(rows)
 
+    # Ad text dropped to save disk space (description NULL) on a board whose feed carries it: the next fetch brings it
+    # back, so wait for that rather than score a role from its title alone.
+    waiting = [r for r in rows if r["description"] is None and r["source"] in FEED_HAS_TEXT]
+    if waiting:
+        print(f"  {len(waiting)} roles wait for their ad text, which the next fetch brings back.")
+        later = {r["key"] for r in waiting}
+        rows = [r for r in rows if r["key"] not in later]
     system = SCORE_SYSTEM.format(profile=profile)
 
     def work(r):

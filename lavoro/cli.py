@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import sys
 import time
+from datetime import date
 from concurrent.futures import ThreadPoolExecutor
 
 from . import contacts, db, digest, discover, draft, llm, match, regions, websearch
@@ -49,9 +50,25 @@ def cmd_probe(con, cfg, a):
     con.commit()
 
 
+def boards_to_fetch(con, every: int, day: int | None = None) -> tuple[list, int]:
+    """Busy boards are read on every run: companies you follow or added yourself, boards never read or empty so far,
+    and boards with at least one role that ever passed your filter. The quiet rest (most of the bundled list) is
+    read once every `every` days, a different share each day. Returns (boards to read now, all boards)."""
+    comps = con.execute("""SELECT c.*, (c.starred=1 OR c.source IN ('manual','probe')
+                               OR NOT EXISTS (SELECT 1 FROM jobs j WHERE j.company_id=c.id)
+                               OR EXISTS (SELECT 1 FROM jobs j WHERE j.company_id=c.id
+                                          AND (j.passed_filter=1 OR j.score IS NOT NULL))) AS busy
+                           FROM companies c WHERE c.ats IS NOT NULL AND c.ats<>'none'""").fetchall()
+    if every <= 1:
+        return comps, len(comps)
+    day = date.today().toordinal() if day is None else day
+    return [c for c in comps if c["busy"] or (c["id"] + day) % every == 0], len(comps)
+
+
 def cmd_fetch(con, cfg, a):
     s = cfg.get("search", {})
-    comps = con.execute("SELECT * FROM companies WHERE ats IS NOT NULL AND ats<>'none'").fetchall()
+    every = 1 if getattr(a, "all", False) or getattr(a, "discover", False) else int(s.get("quiet_boards_every_days", 3))
+    comps, all_boards = boards_to_fetch(con, every)
 
     def work(c):
         try:
@@ -77,7 +94,9 @@ def cmd_fetch(con, cfg, a):
                 con.execute(f"UPDATE jobs SET status='closed' WHERE company_id=? AND key NOT IN ({q}) AND status NOT IN ('sent','closed')",
                             (c["id"], *keys))
             con.execute("UPDATE companies SET checked_at=? WHERE id=?", (db.now(), c["id"]))
-    print(f"Job boards: {len(comps)} companies, {total} open jobs, {new} new.")
+    quiet = f" (the other {all_boards - len(comps)}, where no role has passed your filter yet, every {every} days)" \
+        if len(comps) < all_boards else ""
+    print(f"Job boards: {len(comps)} companies read{quiet}, {total} open jobs, {new} new.")
 
     jt, region = s.get("jobtech", {}), regions.resolve(cfg)
     if region["jobtech"]:
@@ -138,6 +157,9 @@ def cmd_match(con, cfg, a):
     n = match.apply_filter(con, cfg)
     print(f"{n} new jobs passed the title/location filter.")
     print(f"  AI: {llm.describe()}")
+    kept, dropped = match.triage_jobs(con, cfg)
+    if kept or dropped:
+        print(f"Quick check: {kept} roles kept for a full read, {dropped} clearly wrong ones set aside.")
     print(f"Scored {match.score_jobs(con, cfg)} jobs.")
     explained = match.explain_jobs(con, cfg)
     if explained:
@@ -352,7 +374,8 @@ def main(argv=None):
     p = sub.add_parser("detect", help="find the job board (ATS) for companies without one"); p.add_argument("--limit", type=int, default=200)
     p = sub.add_parser("add", help="add a company by name, website or careers URL"); p.add_argument("url", metavar="name_or_url"); p.add_argument("--name")
     p = sub.add_parser("probe", help="guess a company's job board from its name"); p.add_argument("names", nargs="+"); p.add_argument("--domain")
-    sub.add_parser("fetch", help="pull jobs from all boards + Platsbanken")
+    p = sub.add_parser("fetch", help="pull jobs from the job boards + Platsbanken")
+    p.add_argument("--all", action="store_true", help="read every board now, also the quiet ones (search.quiet_boards_every_days)")
     sub.add_parser("web", help="Claude web search for postings the job boards miss")
     p = sub.add_parser("funding", help="find companies that just raised money, and their job boards"); p.add_argument("--force", action="store_true")
     p = sub.add_parser("describe", help="add a one-line description to hiring companies that have none")

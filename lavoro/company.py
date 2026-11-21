@@ -527,7 +527,7 @@ def render_company(con, cid: int) -> str | None:
     foot_note = (f'<a href="#teams">{more_teams} more team{"s" if more_teams != 1 else ""} below</a>, each with who hires for it.'
                  if more_teams > 0 else ('<a href="#teams">Every role is below</a>, by team.' if jobs else ""))
 
-    checked = f'Last checked {e(ago(c["checked_at"]))} · on every run' if c["checked_at"] else ""
+    checked = f'Last checked {e(ago(c["checked_at"]))}' if c["checked_at"] else ""
     hero = (f'<div class="ctop"><nav class="crumbs" aria-label="Breadcrumb"><a href="/companies">All companies</a><span>/</span>'
             f'<span>{e(c["name"])}</span></nav><span class="checked">{checked}</span></div>'
             f'<p class="careers">Careers at {e(c["name"])}{" <span class=\"live\">Hiring now</span>" if n else ""}</p>'

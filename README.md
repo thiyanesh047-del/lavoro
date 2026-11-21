@@ -107,10 +107,10 @@ These steps go in order.
 |---|---|---|
 | Company list | `seed-yc`, `seed-startups`, `add`, `probe` | Seeds Y Combinator companies that are hiring and a bundled list of about 7,000 companies that are hiring, each with its job board, website and a one-line description (`lavoro/lists/startups.csv`), with their logos (`lavoro/logo_bundle/`), plus any company you add by website or name. Turn the bundled list off with `search.startups.enabled: false`. |
 | Board detection | `detect` | Finds each company's job board: Greenhouse, Lever, Ashby, Workable, Recruitee, Teamtailor, SmartRecruiters, Workday or SAP SuccessFactors. Workday and SuccessFactors boards (used by big employers such as Volvo) cannot be guessed from a name: add them by pasting the careers link. |
-| Fetch | `fetch` | Reads every open role from each board's public feed. No key needed. It also reads the latest Hacker News "Who is hiring?" thread (posts often include the founder's email), [Arbeitnow](https://www.arbeitnow.com)'s free European job API, and, in Sweden, Platsbanken through the JobTech API. |
+| Fetch | `fetch` | Reads every open role from each board's public feed. No key needed. Boards where no role has ever passed your filter are read every 3 days instead of every run (`search.quiet_boards_every_days`; `fetch --all` reads them all now). It also reads the latest Hacker News "Who is hiring?" thread (posts often include the founder's email), [Arbeitnow](https://www.arbeitnow.com)'s free European job API, and, in Sweden, Platsbanken through the JobTech API. |
 | Web search | `web` | Claude searches the web for postings the boards miss: company career pages, local job sites and LinkedIn job listings. It reads search results only and never opens a LinkedIn page. Old LinkedIn ads, which search engines keep listing, are dropped. One Claude call per run. |
 | Just raised | `funding` | Once a week, Claude finds companies in your region that announced a funding round in the last weeks. They tend to hire next. Lavoro looks for their job boards. |
-| Match | `match`, `rescore` | Applies a quick title, location and company filter, then Claude scores what's left from 0 to 10 and lists what fits, what is missing and what rules the role out. After you change `profile.md`, `rescore` scores the best open roles again. |
+| Match | `match`, `rescore` | Applies a quick title, location and company filter. Claude then reads about 40 of the remaining roles per call and sets aside the clearly wrong ones (`llm.triage`), and scores what's left from 0 to 10 and lists what fits, what is missing and what rules the role out. After you change `profile.md`, `rescore` scores the best open roles again. |
 | Contacts | `contacts` | Finds the hiring person for top roles. See "Where emails come from" below. |
 | Draft | `draft`, `redraft` | Writes one short email per role. `redraft <key> --note "shorter"` rewrites one draft the way you ask. |
 | Site | `serve` | Shows the local site. Its buttons save to your local database. |
@@ -234,6 +234,18 @@ python -m lavoro bundle
 ```
 
 Then commit both folders. Only company facts are shipped: never contacts, drafts, scores or anything from `profile.md`.
+
+### Tests
+
+The tests use a throwaway database and never touch your data, the network or Claude.
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+```bash
+python -m pytest tests
+```
 
 ## Privacy and good manners
 

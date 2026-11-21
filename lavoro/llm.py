@@ -116,8 +116,9 @@ def _cli(*, effort: str, system: str, user: str, schema: type[T], web: bool | st
     if pdf:
         user = "First read the attached CV with the Read tool: ./cv.pdf (in the current folder).\n\n" + user
     prompt = f"<instructions>\n{system}\n</instructions>\n\n{user}"
-    # Run from an empty folder so no CLAUDE.md or project files are picked up.
-    with tempfile.TemporaryDirectory() as cwd:
+    # Run from an empty folder so no CLAUDE.md or project files are picked up. On Windows the claude process can still
+    # hold the folder for a moment after it exits; a failed clean-up must not throw away an answer that already came back.
+    with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as cwd:
         if pdf:
             shutil.copyfile(pdf, os.path.join(cwd, "cv.pdf"))
         try:
